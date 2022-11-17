@@ -1,0 +1,187 @@
+// Project	SSEM
+// Entity	STATICISOR
+// File	staticisor.hase
+// Date	May 2021
+
+
+$class_decls
+
+  Clock * myClock;
+  control * myControl;
+  time_bar* myTimer;
+  adder* myAdder;
+  acc* myAcc;
+  subtractor* mySubtractor;
+  test* myTest;
+
+// Variable Declarations
+
+  bool fetch_instruction, fetch_operand, store_operand;
+  bool fetch_acc, fetch_ci;
+  bool cmp, reset_T, execute_stop, halt;
+  bool address_error;
+  char char_bit;
+  int fn, i, bit_value, address;
+  int clock_cycle;
+  t_five_bit addr_string;
+  t_six_bit add_control;
+  t_eight_bit instrn_string;
+  t_ssem_instrn_set instrn;				// instruction word
+  t_mem_request mem_request;
+
+$class_defs
+
+$pre
+
+ myClock = (Clock*) sim.get_entity( sim.get_entity_id( "CLOCK" ) );
+ myControl = (control*) sim.get_entity( sim.get_entity_id( "CONTROL" ) );
+ myTimer = (time_bar*) sim.get_entity( sim.get_entity_id( "TIME_BAR" ) );
+ myAcc= (acc*) sim.get_entity( sim.get_entity_id( "ACCUMULATOR" ) );
+ myAdder= (adder*) sim.get_entity( sim.get_entity_id( "ADDER" ) );
+ mySubtractor= (subtractor*) sim.get_entity( sim.get_entity_id( "SUBTRACTOR" ) );
+ myTest= (test*) sim.get_entity( sim.get_entity_id( "TEST" ) );
+
+ address = 1;						// Cl is incremented before instruction access
+
+ fetch_acc = false;
+ fetch_ci = false;
+ fetch_instruction = false;
+ fetch_operand = false;
+ store_operand = false;
+ cmp = false;
+ reset_T = false;
+ execute_stop = false;
+ halt = false;
+ address_error = false;
+ strcpy(mem_request.address.s5, "00000");
+ 
+$phase0
+
+ if (myClock->cycle > 0)		// first clock cycle is used to initialise memory display
+  {
+   dump_state();
+ 
+ if (myTimer->beat == 0)	     	// +1 or +2 added to C.I. and result copied to staticisor
+					// set up adder controls ready to increment C.I. in clock phase 0 of beat 0
+					// clear PI and send CI to staticisor
+   {
+    myAdder->add_control[0] = 1;
+    myAdder->add_control[1] = 0;
+    if (cmp)
+      {
+         myAdder->add_control[0] = !myTest->T;		// Add 1 to CL if ACC non-negative
+         myAdder->add_control[1] = myTest->T;		// Add 2 to CL if ACC negative
+         cmp = false;
+	myTest->reset_T = true;
+       }
+    myAdder->add_control[2] = 0;
+    myAdder->add_control[3] = 1;
+    myAdder->increment_cl = true;
+    myControl->clear_PI();
+    myControl->transmit_CI_to_add();
+   }
+
+  if (execute_stop)
+   {
+    stopSimulation();
+    halt = true;
+   }
+
+ if (fetch_instruction)			// set by Control; access memory for instruction
+  {
+     mem_request.type = 'I';
+
+// convert integer address in S to an address string
+
+int_to_string5 (S, mem_request.address.s5);
+
+     send_S5_PKT(to_memory, mem_request);
+     fetch_instruction = false;
+  }
+
+ if (store_operand)
+   {
+    send_S5_PKT(to_memory, mem_request);
+    myAcc->transmit_ACC_to_memory();
+    store_operand = false;
+   }
+
+ if (fetch_operand)		// set by Control; access memory for operand
+   { 
+
+   switch (fn)
+     {
+       case 0:								// JMP
+	        mem_request.type = 'A';
+		myAdder->add_control[0] = 0;
+		myAdder->add_control[1] = 0;
+		myAdder->add_control[2] = 1;
+		myAdder->add_control[3] = 0;
+		myAdder->jump = true;
+		break;
+   case 1:									// JRP
+	        mem_request.type = 'A';
+		myAdder->add_control[0] = 0;
+		myAdder->add_control[1] = 0;
+		myAdder->add_control[2] = 1;
+		myAdder->add_control[3] = 1;
+		myAdder->jump = true;
+		fetch_ci = true;
+		break;
+    case 2:									// LDN
+		mem_request.type = 'S';
+		mySubtractor->sub_control = 0;
+		break;  
+    case 3:									// STO
+		mem_request.type = 'W';
+		fetch_operand = false;
+		store_operand = true;
+		break;  
+    case 4:									// SUB
+		mem_request.type = 'S';
+		fetch_acc = true;
+		mySubtractor->sub_control = 1;
+		break;  
+    case 5:									// SUB
+		mem_request.type = 'S';;
+		fetch_acc = true;
+		mySubtractor->sub_control = 1;
+		break;  
+    case 6:									// CMP
+	        mem_request.type = 'S';
+		fetch_operand = false;
+		cmp = true;
+		break;  
+    case 7:									// STP
+		fetch_operand = false;
+		execute_stop = true;
+		break; 
+     }
+    int_to_string5 (S, mem_request.address.s5);
+   }
+
+ if (fetch_operand)
+  {
+     send_S5_PKT(to_memory, mem_request);
+     fetch_operand = false;
+  }
+ }
+
+$phase1
+
+    if (fetch_acc)
+     {
+	myAcc->transmit_ACC_to_sub();
+	fetch_acc = false;
+     }
+
+     if (fetch_ci)
+     {
+	myControl->transmit_CI_to_add();
+	fetch_ci = false;
+     }
+
+  dump_state();
+ 
+$report
+

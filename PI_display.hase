@@ -1,0 +1,31 @@
+// Project:	SSEM
+// Entity:	PI_display
+// File:	PI_display.hase
+// Date	May 2021
+
+$class_decls
+
+int value;
+
+$body
+
+while (1)
+{
+  sim_get_next(ev);
+  SIM_CAST (int, value, ev);
+
+ switch (value)
+  {
+    case 0:
+	my_state = S0;
+	break;
+   case 1:
+	my_state = S1;
+	break;
+    case 2:
+	my_state = OFF;
+	break;  
+ }
+dump_state_i();
+}
+

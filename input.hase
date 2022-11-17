@@ -1,0 +1,109 @@
+// Project	SSEM
+// Entity	INPUT
+// File	input.hase (derived from Cray-1 program.hase)
+// Date	May 2021
+
+$class_decls
+
+// Variable Declarations
+
+ Clock * myClock;
+ memory * myMemory;
+
+ bool stop_error, address_error, stop_found;
+ int fn, data;
+ int i, j, rw;								// memory address of 32-bit word
+ int fn_error_line, ad_error_line;
+ int last_inst_line;
+ int integer_instrn[32];
+ t_ssem_instrn_set instrn;				// instruction word
+
+$class_defs
+
+$pre
+
+ myClock = (Clock*) sim.get_entity( sim.get_entity_id( "CLOCK" ) );
+ myMemory = (memory*)sim.get_entity(sim.get_entity_id("MEMORY"));
+
+ rw = 'W';
+ address_error = false;
+ stop_error = false;
+ stop_found = false;
+
+ for (i=0; i<32; i++)
+  {
+    instrn = prog_mem[i];
+/*
+convert function to number, shift left 13 places store in array.
+Check that address field value <32, OR in address field
+*/
+
+	if (instrn.function ==  t_ssem_instrn_set::JMP)
+	    {fn = 0;}										// function 0
+	else if (instrn.function ==  t_ssem_instrn_set::JRP)
+	    {fn = 1;}										// function 1
+	else if (instrn.function ==  t_ssem_instrn_set::LDN)
+	    {fn = 2;}										// function 2
+	else if (instrn.function ==  t_ssem_instrn_set::STO)
+	    {fn = 3;}										// function 3
+	else if (instrn.function ==  t_ssem_instrn_set::SUB)
+	    {fn = 4;}										// function 4
+//	else if (instrn.function ==  t_ssem_instrn_set::SUB)
+//	    {fn = 5;}										// function 5		unused
+	else if (instrn.function ==  t_ssem_instrn_set::CMP)
+	    {fn = 6;}										// function 6
+	else if (instrn.function ==  t_ssem_instrn_set::STP)
+	    {fn = 7;										// function 7
+	     stop_found = true;
+printf("INPUT setting stop_found = true \n");
+}
+	else if (instrn.function ==  t_ssem_instrn_set::EOP)
+	    {fn = 8;
+	     last_inst_line = i;}
+
+	if (instrn.S > 31)
+	 {
+	 address_error = true;
+	 ad_error_line = i;
+	}
+	integer_instrn[i] = fn << 13;
+	integer_instrn[i] = integer_instrn[i] | instrn.S;
+	if (fn < 8)
+          {myMemory->main_mem.Update((i + 1), integer_instrn[i]);}
+						// +1 because Cl is incremented before instruction access
+ }
+
+ last_inst_line = last_inst_line + 1;
+  
+ for (i = 0; i < (32 - last_inst_line);  i++)
+  {
+   data = data_mem[i];
+   myMemory->main_mem.Update((last_inst_line+i), data);
+  }
+
+$phase0
+
+ if (!stop_found)
+  {stop_error = true;
+   stopSimulation();} 
+
+ if (address_error)
+  { stopSimulation();} 
+
+ if (myClock->cycle == 0)
+  {
+   rw = 'W';
+    for (i = 0; i < 32; i++)
+    {myMemory-> updateCRT(rw, i);}
+  }
+
+$phase1
+
+$report
+
+ if (address_error)
+  {printf("address error on line %d: address must be in the range 0-31 \n", ad_error_line);}
+
+if (stop_error)
+ {printf("no STOP instruction in program \n");}
+

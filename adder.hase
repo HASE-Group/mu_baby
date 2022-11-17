@@ -1,0 +1,173 @@
+
+// Project:	SSEM
+// Entity	Adder
+// File	adder.hase
+// Date:	June 2021
+
+// This unit has four data inputs, plus1_in, plus2_in, mem_input and cl_input
+// and two data outputs, all controlled by signals from the Staticsor.
+// Inputs plus1_in and plus2_in are permanently set to +1 and +2;
+// the +1 and +2 entities are just for show!
+// mem_input comes from the Memory, CI_input from the CI register in the Control Unit.
+// The inputs to the adder itself are one of  +1, +2 and mem_input and either CI_input
+// or zero, according to the function being executed.
+// The outputs are connected to the Control Unit and to the Memory.
+// All inputs and outputs are treated as 5-bit numbers
+// CI is incremented at the start of an instruction, so the first instruction taken from
+// the Memory is from line 1.
+
+
+// Control signals from Staticisor :
+// add_control0 selects +1
+// add_control1 selects +2
+// add_control2 selects mem_input
+// add_control3 selects cl_input
+// add_control4 controls cl_output (to CI)
+
+$class_decls
+
+// structures and variables
+
+  bool increment_cl, jump, cl_ready, mem_ready, add_done;
+  bool add_control[4], send_to_control;
+  char char_bit;
+  int i;
+  int add_input1, add_input2, add_input3, add_input4, add_output;
+  int adder_inputA, adder_inputB;
+
+  int mem_value, cl_value, add_result, bit_value;
+  t_five_bit  cl_string, add_string;
+  t_thirtytwo_bit  mem_string;
+
+//classes
+
+$class_defs
+
+$pre
+
+  increment_cl = false;
+  jump = false;
+  cl_ready = false;
+  mem_ready = false;
+  add_done = false;
+  send_to_control = false;
+  my_state = ADD_IDLE;
+
+  add_control[0] = 1;
+  add_control[1] = 0;
+  add_control[2] = 0;
+  add_control[3] = 1;
+
+  strcpy (cl_string.s5, "00000");
+  strcpy (add_string.s5, "00000");
+  strcpy (mem_string.s32, "00000000000000000000000000000000");
+
+$phase0							// execute JMP and JRP 
+
+ my_state = ADD_IDLE;
+
+// predicates for use in sim_waiting test
+
+  sim_from_port M_input (mem_data_in);
+  sim_from_port C_input (from_control);
+
+    if (sim_waiting (ev, C_input) > 0)
+     {
+	SIM_CAST_DEL( t_five_bit, cl_string, ev);
+	cl_value = string_to_int (cl_string.s5, 5);			// convert cl_string to integer cl_value
+
+//printf("ADDER - jump: getting CI input, add_control = %d%d%d%d \n", add_control[0], add_control[1], add_control[2], add_control[3]);
+	cl_ready = true;
+     }
+
+  if  (sim_waiting(ev, M_input) > 0)
+     {
+	SIM_CAST_DEL(t_thirtytwo_bit, mem_string, ev);
+	mem_value = string_to_int (mem_string.s32, 5);		// convert m_input string to integer mem_value
+	mem_ready = true;
+     }
+  if (cl_ready || mem_ready)
+   {my_state = ADD_BUSY;}
+  dump_state_i();
+
+// clear adder inputs and then select new adder inputs
+
+ if (
+      ( ((add_control[2] == 1) && mem_ready) && ( (add_control[3] == 1) && cl_ready) ) 
+   || ( ((add_control[2] == 1) && mem_ready) && (add_control[3] == 0)  ) 
+    )
+  {
+    adder_inputA = 0;
+    adder_inputB = 0;
+
+    if (add_control[2] == 1)
+     {adder_inputA = mem_value;}
+
+    if (add_control[3] == 1)
+     {adder_inputB = cl_value;}
+
+// perform addition
+
+   add_result = adder_inputA + adder_inputB; 
+   add_done = true;
+   int_to_string5 (add_result, add_string.s5);		// convert integer result to string
+
+   sim_hold(5);
+
+   if (add_done)
+    {
+     send_ADDRESS(to_control, add_string);
+     add_done = false;
+     cl_ready = false;
+     mem_ready = false;
+     jump = false;
+     my_state = ADD_IDLE;
+    }
+ }		// end of jump
+
+$phase1							// add +1 or +2 to CL
+
+  sim_from_port C_input (from_control);
+
+ if (increment_cl)
+  {
+    my_state = ADD_BUSY; 
+    dump_state_i();
+
+    if (sim_waiting (ev, C_input) > 0)
+     {
+	SIM_CAST_DEL( t_five_bit, cl_string, ev);
+	cl_value = string_to_int (cl_string.s5, 5);			// convert cl_string to integer cl_value
+
+// printf("ADDER: getting CI input, add_control = %d%d%d%d \n", add_control[0], add_control[1], add_control[2], add_control[3]);
+     
+// clear adder inputs and then select new adder inputs
+
+  adder_inputA = 0;
+  adder_inputB = 0;
+
+  if (add_control[0] == 1)
+   {adder_inputA = 1;}
+
+  if (add_control[1] == 1)
+   {adder_inputA = 2;}
+
+  if (add_control[2] == 1)
+   {adder_inputA = mem_value;}
+
+  if (add_control[3] == 1)
+   {adder_inputB = cl_value;}
+
+// perform addition
+
+  add_result = adder_inputA + adder_inputB; 
+  int_to_string5 (add_result, add_string.s5);		// convert integer result to string
+
+   send_ADDRESS(to_control, add_string);
+ }
+   increment_cl = false;
+ }
+	// end of  ClockPhase 1
+
+
+

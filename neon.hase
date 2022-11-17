@@ -1,0 +1,41 @@
+// Project	SSEM
+// Entity	HALT NEON
+// File	neon.hase
+// Date	July 2021
+
+/*
+The Halt Neon is off when the simulation is loaded and turned on when
+an STP instruction is executed.
+*/
+
+$class_decls
+
+  Clock * myClock;
+  staticisor* myStaticisor;
+
+$class_defs
+
+$pre
+
+ myClock = (Clock*) sim.get_entity( sim.get_entity_id( "CLOCK" ) );
+ myStaticisor = (staticisor*) sim.get_entity( sim.get_entity_id( "STATICISOR" ) );
+
+$phase0
+
+ if (myClock->cycle == 0)		// first clock cycle is used to set the neon to off
+  {
+    my_state = NEON_OFF;
+    dump_state();
+  }
+
+  if (myStaticisor->halt)
+  {
+    my_state = NEON_ON;
+    dump_state();
+  }
+
+$phase1
+
+$report
+
+

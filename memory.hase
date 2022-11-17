@@ -1,0 +1,1381 @@
+// Project:	SSEM
+// Entity	Memory
+// File:	memory.hase
+// Date:	May 2021
+
+// The Memory Unit contains an array of integers, the 32-line RARRAY main_mem.
+// Requests are processed in ClockPhase 0 and returned in the subsequent ClockPhase 1.
+// Packets are sent to the Memory from the processor as bit strings that can be displayed
+// immediately by extracting 4 bits at a time and sending them to the CRT display unit.
+
+$class_decls
+
+void updateCRT(char rw, int mem_address);
+
+// entity references
+
+  staticisor* myStaticisor;
+
+  sim_entity_id display_000;
+  sim_entity_id display_001;
+  sim_entity_id display_002;
+  sim_entity_id display_003;
+  sim_entity_id display_004;
+  sim_entity_id display_005;
+  sim_entity_id display_006;
+  sim_entity_id display_007;
+
+  sim_entity_id display_010;
+  sim_entity_id display_011;
+  sim_entity_id display_012;
+  sim_entity_id display_013;
+  sim_entity_id display_014;
+  sim_entity_id display_015;
+  sim_entity_id display_016;
+  sim_entity_id display_017;
+
+  sim_entity_id display_020;
+  sim_entity_id display_021;
+  sim_entity_id display_022;
+  sim_entity_id display_023;
+  sim_entity_id display_024;
+  sim_entity_id display_025;
+  sim_entity_id display_026;
+  sim_entity_id display_027;
+
+  sim_entity_id display_030;
+  sim_entity_id display_031;
+  sim_entity_id display_032;
+  sim_entity_id display_033;
+  sim_entity_id display_034;
+  sim_entity_id display_035;
+  sim_entity_id display_036;
+  sim_entity_id display_037;
+
+  sim_entity_id display_040;
+  sim_entity_id display_041;
+  sim_entity_id display_042;
+  sim_entity_id display_043;
+  sim_entity_id display_044;
+  sim_entity_id display_045;
+  sim_entity_id display_046;
+  sim_entity_id display_047;
+
+  sim_entity_id display_050;
+  sim_entity_id display_051;
+  sim_entity_id display_052;
+  sim_entity_id display_053;
+  sim_entity_id display_054;
+  sim_entity_id display_055;
+  sim_entity_id display_056;
+  sim_entity_id display_057;
+
+  sim_entity_id display_060;
+  sim_entity_id display_061;
+  sim_entity_id display_062;
+  sim_entity_id display_063;
+  sim_entity_id display_064;
+  sim_entity_id display_065;
+  sim_entity_id display_066;
+  sim_entity_id display_067;
+
+  sim_entity_id display_070;
+  sim_entity_id display_071;
+  sim_entity_id display_072;
+  sim_entity_id display_073;
+  sim_entity_id display_074;
+  sim_entity_id display_075;
+  sim_entity_id display_076;
+  sim_entity_id display_077;
+
+  sim_entity_id display_080;
+  sim_entity_id display_081;
+  sim_entity_id display_082;
+  sim_entity_id display_083;
+  sim_entity_id display_084;
+  sim_entity_id display_085;
+  sim_entity_id display_086;
+  sim_entity_id display_087;
+
+  sim_entity_id display_090;
+  sim_entity_id display_091;
+  sim_entity_id display_092;
+  sim_entity_id display_093;
+  sim_entity_id display_094;
+  sim_entity_id display_095;
+  sim_entity_id display_096;
+  sim_entity_id display_097;
+
+  sim_entity_id display_100;
+  sim_entity_id display_101;
+  sim_entity_id display_102;
+  sim_entity_id display_103;
+  sim_entity_id display_104;
+  sim_entity_id display_105;
+  sim_entity_id display_106;
+  sim_entity_id display_107;
+
+  sim_entity_id display_110;
+  sim_entity_id display_111;
+  sim_entity_id display_112;
+  sim_entity_id display_113;
+  sim_entity_id display_114;
+  sim_entity_id display_115;
+  sim_entity_id display_116;
+  sim_entity_id display_117;
+
+  sim_entity_id display_120;
+  sim_entity_id display_121;
+  sim_entity_id display_122;
+  sim_entity_id display_123;
+  sim_entity_id display_124;
+  sim_entity_id display_125;
+  sim_entity_id display_126;
+  sim_entity_id display_127;
+
+  sim_entity_id display_130;
+  sim_entity_id display_131;
+  sim_entity_id display_132;
+  sim_entity_id display_133;
+  sim_entity_id display_134;
+  sim_entity_id display_135;
+  sim_entity_id display_136;
+  sim_entity_id display_137;
+
+  sim_entity_id display_140;
+  sim_entity_id display_141;
+  sim_entity_id display_142;
+  sim_entity_id display_143;
+  sim_entity_id display_144;
+  sim_entity_id display_145;
+  sim_entity_id display_146;
+  sim_entity_id display_147;
+
+  sim_entity_id display_150;
+  sim_entity_id display_151;
+  sim_entity_id display_152;
+  sim_entity_id display_153;
+  sim_entity_id display_154;
+  sim_entity_id display_155;
+  sim_entity_id display_156;
+  sim_entity_id display_157;
+
+  sim_entity_id display_160;
+  sim_entity_id display_161;
+  sim_entity_id display_162;
+  sim_entity_id display_163;
+  sim_entity_id display_164;
+  sim_entity_id display_165;
+  sim_entity_id display_166;
+  sim_entity_id display_167;
+
+  sim_entity_id display_170;
+  sim_entity_id display_171;
+  sim_entity_id display_172;
+  sim_entity_id display_173;
+  sim_entity_id display_174;
+  sim_entity_id display_175;
+  sim_entity_id display_176;
+  sim_entity_id display_177;
+
+  sim_entity_id display_180;
+  sim_entity_id display_181;
+  sim_entity_id display_182;
+  sim_entity_id display_183;
+  sim_entity_id display_184;
+  sim_entity_id display_185;
+  sim_entity_id display_186;
+  sim_entity_id display_187;
+
+  sim_entity_id display_190;
+  sim_entity_id display_191;
+  sim_entity_id display_192;
+  sim_entity_id display_193;
+  sim_entity_id display_194;
+  sim_entity_id display_195;
+  sim_entity_id display_196;
+  sim_entity_id display_197;
+
+  sim_entity_id display_200;
+  sim_entity_id display_201;
+  sim_entity_id display_202;
+  sim_entity_id display_203;
+  sim_entity_id display_204;
+  sim_entity_id display_205;
+  sim_entity_id display_206;
+  sim_entity_id display_207;
+
+  sim_entity_id display_210;
+  sim_entity_id display_211;
+  sim_entity_id display_212;
+  sim_entity_id display_213;
+  sim_entity_id display_214;
+  sim_entity_id display_215;
+  sim_entity_id display_216;
+  sim_entity_id display_217;
+
+  sim_entity_id display_220;
+  sim_entity_id display_221;
+  sim_entity_id display_222;
+  sim_entity_id display_223;
+  sim_entity_id display_224;
+  sim_entity_id display_225;
+  sim_entity_id display_226;
+  sim_entity_id display_227;
+
+  sim_entity_id display_230;
+  sim_entity_id display_231;
+  sim_entity_id display_232;
+  sim_entity_id display_233;
+  sim_entity_id display_234;
+  sim_entity_id display_235;
+  sim_entity_id display_236;
+  sim_entity_id display_237;
+
+  sim_entity_id display_240;
+  sim_entity_id display_241;
+  sim_entity_id display_242;
+  sim_entity_id display_243;
+  sim_entity_id display_244;
+  sim_entity_id display_245;
+  sim_entity_id display_246;
+  sim_entity_id display_247;
+
+  sim_entity_id display_250;
+  sim_entity_id display_251;
+  sim_entity_id display_252;
+  sim_entity_id display_253;
+  sim_entity_id display_254;
+  sim_entity_id display_255;
+  sim_entity_id display_256;
+  sim_entity_id display_257;
+
+  sim_entity_id display_260;
+  sim_entity_id display_261;
+  sim_entity_id display_262;
+  sim_entity_id display_263;
+  sim_entity_id display_264;
+  sim_entity_id display_265;
+  sim_entity_id display_266;
+  sim_entity_id display_267;
+
+  sim_entity_id display_270;
+  sim_entity_id display_271;
+  sim_entity_id display_272;
+  sim_entity_id display_273;
+  sim_entity_id display_274;
+  sim_entity_id display_275;
+  sim_entity_id display_276;
+  sim_entity_id display_277;
+
+  sim_entity_id display_280;
+  sim_entity_id display_281;
+  sim_entity_id display_282;
+  sim_entity_id display_283;
+  sim_entity_id display_284;
+  sim_entity_id display_285;
+  sim_entity_id display_286;
+  sim_entity_id display_287;
+
+  sim_entity_id display_290;
+  sim_entity_id display_291;
+  sim_entity_id display_292;
+  sim_entity_id display_293;
+  sim_entity_id display_294;
+  sim_entity_id display_295;
+  sim_entity_id display_296;
+  sim_entity_id display_297;
+
+  sim_entity_id display_300;
+  sim_entity_id display_301;
+  sim_entity_id display_302;
+  sim_entity_id display_303;
+  sim_entity_id display_304;
+  sim_entity_id display_305;
+  sim_entity_id display_306;
+  sim_entity_id display_307;
+
+  sim_entity_id display_310;
+  sim_entity_id display_311;
+  sim_entity_id display_312;
+  sim_entity_id display_313;
+  sim_entity_id display_314;
+  sim_entity_id display_315;
+  sim_entity_id display_316;
+  sim_entity_id display_317;
+
+
+
+ bool i_request, a_request, s_request, w_request;
+  char rw, char_bit;
+  int mem_address, mem_value;
+  int  write_data;
+  int i, bit_value, value;
+  int word, reverse_word;
+
+//structures and variables
+
+  t_five_bit address_string;
+  t_mem_request mem_request;
+  t_sixteen_bit instrn_string;
+  t_thirtytwo_bit data_string;
+
+
+$class_defs
+
+void memory::updateCRT(char rw, int mem_address)
+
+// Update Display 
+// if rw = R, read by writing all 1's, if rw = W, write value in line mem_addrss
+// For each memory word, form reverse order version of memory word
+// Create a value for  each 4-bit group in reverse word and send to Display
+
+{
+ if (rw == 'R')
+  {reverse_word = -1;}
+
+ if (rw == 'W')
+  {
+   word = main_mem[mem_address];
+   reverse_word = word & 1;
+   for (i = 1; i < 32; i++)
+    {
+     reverse_word = reverse_word << 1;
+     bit_value = ((word >> i) & 1);
+     reverse_word = reverse_word | bit_value;
+     }
+  }
+
+ if (mem_address == 0)
+ {
+  value = (reverse_word >> 28) & 15;
+  sim_schedule(display_000, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 24) & 15;
+  sim_schedule(display_001, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 20) & 15;
+  sim_schedule(display_002, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 16) & 15;
+  sim_schedule(display_003, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 12) & 15;
+  sim_schedule(display_004, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 8) & 15;
+  sim_schedule(display_005, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 4) & 15;
+  sim_schedule(display_006, 0.0, DATA, SIM_PUT(int, value));
+  value = reverse_word  & 15;
+  sim_schedule(display_007, 0.0, DATA, SIM_PUT(int, value));
+ }
+
+ if (mem_address == 1)
+  {
+  value = (reverse_word >> 28) & 15;
+  sim_schedule(display_010, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 24) & 15;
+  sim_schedule(display_011, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 20) & 15;
+  sim_schedule(display_012, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 16) & 15;
+  sim_schedule(display_013, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 12) & 15;
+  sim_schedule(display_014, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 8) & 15;
+  sim_schedule(display_015, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 4) & 15;
+  sim_schedule(display_016, 0.0, DATA, SIM_PUT(int, value));
+  value = reverse_word  & 15;
+  sim_schedule(display_017, 0.0, DATA, SIM_PUT(int, value));
+  }
+
+ if (mem_address == 2)
+  {
+  value = (reverse_word >> 28) & 15;
+  sim_schedule(display_020, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 24) & 15;
+  sim_schedule(display_021, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 20) & 15;
+  sim_schedule(display_022, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 16) & 15;
+  sim_schedule(display_023, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 12) & 15;
+  sim_schedule(display_024, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 8) & 15;
+  sim_schedule(display_025, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 4) & 15;
+  sim_schedule(display_026, 0.0, DATA, SIM_PUT(int, value));
+  value = reverse_word  & 15;
+  sim_schedule(display_027, 0.0, DATA, SIM_PUT(int, value));
+  }
+
+ if (mem_address == 3)
+  {
+  value = (reverse_word >> 28) & 15;
+  sim_schedule(display_030, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 24) & 15;
+  sim_schedule(display_031, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 20) & 15;
+  sim_schedule(display_032, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 16) & 15;
+  sim_schedule(display_033, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 12) & 15;
+  sim_schedule(display_034, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 8) & 15;
+  sim_schedule(display_035, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 4) & 15;
+  sim_schedule(display_036, 0.0, DATA, SIM_PUT(int, value));
+  value = reverse_word  & 15;
+  sim_schedule(display_037, 0.0, DATA, SIM_PUT(int, value));
+  }
+
+ if (mem_address == 4)
+  {
+  value = (reverse_word >> 28) & 15;
+  sim_schedule(display_040, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 24) & 15;
+  sim_schedule(display_041, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 20) & 15;
+  sim_schedule(display_042, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 16) & 15;
+  sim_schedule(display_043, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 12) & 15;
+  sim_schedule(display_044, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 8) & 15;
+  sim_schedule(display_045, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 4) & 15;
+  sim_schedule(display_046, 0.0, DATA, SIM_PUT(int, value));
+  value = reverse_word  & 15;
+  sim_schedule(display_047, 0.0, DATA, SIM_PUT(int, value));
+  }
+
+ if (mem_address == 5)
+  {
+  value = (reverse_word >> 28) & 15;
+  sim_schedule(display_050, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 24) & 15;
+  sim_schedule(display_051, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 20) & 15;
+  sim_schedule(display_052, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 16) & 15;
+  sim_schedule(display_053, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 12) & 15;
+  sim_schedule(display_054, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 8) & 15;
+  sim_schedule(display_055, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 4) & 15;
+  sim_schedule(display_056, 0.0, DATA, SIM_PUT(int, value));
+  value = reverse_word  & 15;
+  sim_schedule(display_057, 0.0, DATA, SIM_PUT(int, value));
+  }
+
+ if (mem_address == 6)
+  {  
+  value = (reverse_word >> 28) & 15;
+  sim_schedule(display_060, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 24) & 15;
+  sim_schedule(display_061, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 20) & 15;
+  sim_schedule(display_062, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 16) & 15;
+  sim_schedule(display_063, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 12) & 15;
+  sim_schedule(display_064, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 8) & 15;
+  sim_schedule(display_065, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 4) & 15;
+  sim_schedule(display_066, 0.0, DATA, SIM_PUT(int, value));
+  value = reverse_word  & 15;
+  sim_schedule(display_067, 0.0, DATA, SIM_PUT(int, value));
+  }
+
+ if (mem_address == 7)
+  { 
+  value = (reverse_word >> 28) & 15;
+  sim_schedule(display_070, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 24) & 15;
+  sim_schedule(display_071, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 20) & 15;
+  sim_schedule(display_072, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 16) & 15;
+  sim_schedule(display_073, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 12) & 15;
+  sim_schedule(display_074, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 8) & 15;
+  sim_schedule(display_075, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 4) & 15;
+  sim_schedule(display_076, 0.0, DATA, SIM_PUT(int, value));
+  value = reverse_word  & 15;
+  sim_schedule(display_077, 0.0, DATA, SIM_PUT(int, value));
+  }
+
+ if (mem_address == 8)
+  { 
+  value = (reverse_word >> 28) & 15;
+  sim_schedule(display_080, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 24) & 15;
+  sim_schedule(display_081, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 20) & 15;
+  sim_schedule(display_082, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 16) & 15;
+  sim_schedule(display_083, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 12) & 15;
+  sim_schedule(display_084, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 8) & 15;
+  sim_schedule(display_085, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 4) & 15;
+  sim_schedule(display_086, 0.0, DATA, SIM_PUT(int, value));
+  value = reverse_word  & 15;
+  sim_schedule(display_087, 0.0, DATA, SIM_PUT(int, value));
+  }
+
+ if (mem_address == 9)
+  {
+  value = (reverse_word >> 28) & 15;
+  sim_schedule(display_090, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 24) & 15;
+  sim_schedule(display_091, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 20) & 15;
+  sim_schedule(display_092, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 16) & 15;
+  sim_schedule(display_093, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 12) & 15;
+  sim_schedule(display_094, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 8) & 15;
+  sim_schedule(display_095, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 4) & 15;
+  sim_schedule(display_096, 0.0, DATA, SIM_PUT(int, value));
+  value = reverse_word  & 15;
+  sim_schedule(display_097, 0.0, DATA, SIM_PUT(int, value));
+  }
+
+ if (mem_address == 10)
+  {
+  value = (reverse_word >> 28) & 15;
+  sim_schedule(display_100, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 24) & 15;
+  sim_schedule(display_101, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 20) & 15;
+  sim_schedule(display_102, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 16) & 15;
+  sim_schedule(display_103, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 12) & 15;
+  sim_schedule(display_104, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 8) & 15;
+  sim_schedule(display_105, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 4) & 15;
+  sim_schedule(display_106, 0.0, DATA, SIM_PUT(int, value));
+  value = reverse_word  & 15;
+  sim_schedule(display_107, 0.0, DATA, SIM_PUT(int, value));
+  }
+
+ if (mem_address == 11)
+  {
+  value = (reverse_word >> 28) & 15;
+  sim_schedule(display_110, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 24) & 15;
+  sim_schedule(display_111, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 20) & 15;
+  sim_schedule(display_112, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 16) & 15;
+  sim_schedule(display_113, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 12) & 15;
+  sim_schedule(display_114, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 8) & 15;
+  sim_schedule(display_115, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 4) & 15;
+  sim_schedule(display_116, 0.0, DATA, SIM_PUT(int, value));
+  value = reverse_word  & 15;
+  sim_schedule(display_117, 0.0, DATA, SIM_PUT(int, value));
+  }
+
+ if (mem_address == 12)
+  {
+  value = (reverse_word >> 28) & 15;
+  sim_schedule(display_120, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 24) & 15;
+  sim_schedule(display_121, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 20) & 15;
+  sim_schedule(display_122, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 16) & 15;
+  sim_schedule(display_123, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 12) & 15;
+  sim_schedule(display_124, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 8) & 15;
+  sim_schedule(display_125, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 4) & 15;
+  sim_schedule(display_126, 0.0, DATA, SIM_PUT(int, value));
+  value = reverse_word  & 15;
+  sim_schedule(display_127, 0.0, DATA, SIM_PUT(int, value));
+  }
+
+ if (mem_address == 13)
+  {
+  value = (reverse_word >> 28) & 15;
+  sim_schedule(display_130, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 24) & 15;
+  sim_schedule(display_131, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 20) & 15;
+  sim_schedule(display_132, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 16) & 15;
+  sim_schedule(display_133, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 12) & 15;
+  sim_schedule(display_134, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 8) & 15;
+  sim_schedule(display_135, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 4) & 15;
+  sim_schedule(display_136, 0.0, DATA, SIM_PUT(int, value));
+  value = reverse_word  & 15;
+  sim_schedule(display_137, 0.0, DATA, SIM_PUT(int, value));
+  }
+
+ if (mem_address == 14)
+  {
+  value = (reverse_word >> 28) & 15;
+  sim_schedule(display_140, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 24) & 15;
+  sim_schedule(display_141, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 20) & 15;
+  sim_schedule(display_142, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 16) & 15;
+  sim_schedule(display_143, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 12) & 15;
+  sim_schedule(display_144, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 8) & 15;
+  sim_schedule(display_145, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 4) & 15;
+  sim_schedule(display_146, 0.0, DATA, SIM_PUT(int, value));
+  value = reverse_word  & 15;
+  sim_schedule(display_147, 0.0, DATA, SIM_PUT(int, value));
+  }
+
+ if (mem_address == 15)
+  {
+  value = (reverse_word >> 28) & 15;
+  sim_schedule(display_150, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 24) & 15;
+  sim_schedule(display_151, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 20) & 15;
+  sim_schedule(display_152, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 16) & 15;
+  sim_schedule(display_153, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 12) & 15;
+  sim_schedule(display_154, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 8) & 15;
+  sim_schedule(display_155, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 4) & 15;
+  sim_schedule(display_156, 0.0, DATA, SIM_PUT(int, value));
+  value = reverse_word  & 15;
+  sim_schedule(display_157, 0.0, DATA, SIM_PUT(int, value));
+  }
+
+ if (mem_address == 16)
+  {
+  value = (reverse_word >> 28) & 15;
+  sim_schedule(display_160, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 24) & 15;
+  sim_schedule(display_161, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 20) & 15;
+  sim_schedule(display_162, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 16) & 15;
+  sim_schedule(display_163, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 12) & 15;
+  sim_schedule(display_164, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 8) & 15;
+  sim_schedule(display_165, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 4) & 15;
+  sim_schedule(display_166, 0.0, DATA, SIM_PUT(int, value));
+  value = reverse_word  & 15;
+  sim_schedule(display_167, 0.0, DATA, SIM_PUT(int, value));
+  }
+
+ if (mem_address == 17)
+  {
+  value = (reverse_word >> 28) & 15;
+  sim_schedule(display_170, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 24) & 15;
+  sim_schedule(display_171, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 20) & 15;
+  sim_schedule(display_172, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 16) & 15;
+  sim_schedule(display_173, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 12) & 15;
+  sim_schedule(display_174, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 8) & 15;
+  sim_schedule(display_175, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 4) & 15;
+  sim_schedule(display_176, 0.0, DATA, SIM_PUT(int, value));
+  value = reverse_word  & 15;
+  sim_schedule(display_177, 0.0, DATA, SIM_PUT(int, value));
+  }
+
+ if (mem_address == 18)
+  {
+  value = (reverse_word >> 28) & 15;
+  sim_schedule(display_180, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 24) & 15;
+  sim_schedule(display_181, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 20) & 15;
+  sim_schedule(display_182, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 16) & 15;
+  sim_schedule(display_183, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 12) & 15;
+  sim_schedule(display_184, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 8) & 15;
+  sim_schedule(display_185, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 4) & 15;
+  sim_schedule(display_186, 0.0, DATA, SIM_PUT(int, value));
+  value = reverse_word  & 15;
+  sim_schedule(display_187, 0.0, DATA, SIM_PUT(int, value));
+  }
+
+ if (mem_address == 19)
+  {
+  value = (reverse_word >> 28) & 15;
+  sim_schedule(display_190, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 24) & 15;
+  sim_schedule(display_191, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 20) & 15;
+  sim_schedule(display_192, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 16) & 15;
+  sim_schedule(display_193, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 12) & 15;
+  sim_schedule(display_194, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 8) & 15;
+  sim_schedule(display_195, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 4) & 15;
+  sim_schedule(display_196, 0.0, DATA, SIM_PUT(int, value));
+  value = reverse_word  & 15;
+  sim_schedule(display_197, 0.0, DATA, SIM_PUT(int, value));
+  }
+
+ if (mem_address == 20)
+  {
+  value = (reverse_word >> 28) & 15;
+  sim_schedule(display_200, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 24) & 15;
+  sim_schedule(display_201, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 20) & 15;
+  sim_schedule(display_202, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 16) & 15;
+  sim_schedule(display_203, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 12) & 15;
+  sim_schedule(display_204, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 8) & 15;
+  sim_schedule(display_205, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 4) & 15;
+  sim_schedule(display_206, 0.0, DATA, SIM_PUT(int, value));
+  value = reverse_word  & 15;
+  sim_schedule(display_207, 0.0, DATA, SIM_PUT(int, value));
+  }
+
+ if (mem_address == 21)
+  {
+  value = (reverse_word >> 28) & 15;
+  sim_schedule(display_210, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 24) & 15;
+  sim_schedule(display_211, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 20) & 15;
+  sim_schedule(display_212, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 16) & 15;
+  sim_schedule(display_213, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 12) & 15;
+  sim_schedule(display_214, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 8) & 15;
+  sim_schedule(display_215, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 4) & 15;
+  sim_schedule(display_216, 0.0, DATA, SIM_PUT(int, value));
+  value = reverse_word  & 15;
+  sim_schedule(display_217, 0.0, DATA, SIM_PUT(int, value));
+  }
+
+ if (mem_address == 22)
+  {
+  value = (reverse_word >> 28) & 15;
+  sim_schedule(display_220, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 24) & 15;
+  sim_schedule(display_221, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 20) & 15;
+  sim_schedule(display_222, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 16) & 15;
+  sim_schedule(display_223, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 12) & 15;
+  sim_schedule(display_224, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 8) & 15;
+  sim_schedule(display_225, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 4) & 15;
+  sim_schedule(display_226, 0.0, DATA, SIM_PUT(int, value));
+  value = reverse_word  & 15;
+  sim_schedule(display_227, 0.0, DATA, SIM_PUT(int, value));
+  }
+
+ if (mem_address == 23)
+  {
+  value = (reverse_word >> 28) & 15;
+  sim_schedule(display_230, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 24) & 15;
+  sim_schedule(display_231, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 20) & 15;
+  sim_schedule(display_232, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 16) & 15;
+  sim_schedule(display_233, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 12) & 15;
+  sim_schedule(display_234, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 8) & 15;
+  sim_schedule(display_235, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 4) & 15;
+  sim_schedule(display_236, 0.0, DATA, SIM_PUT(int, value));
+  value = reverse_word  & 15;
+  sim_schedule(display_237, 0.0, DATA, SIM_PUT(int, value));
+  }
+
+ if (mem_address == 24)
+  {
+  value = (reverse_word >> 28) & 15;
+  sim_schedule(display_240, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 24) & 15;
+  sim_schedule(display_241, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 20) & 15;
+  sim_schedule(display_242, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 16) & 15;
+  sim_schedule(display_243, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 12) & 15;
+  sim_schedule(display_244, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 8) & 15;
+  sim_schedule(display_245, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 4) & 15;
+  sim_schedule(display_246, 0.0, DATA, SIM_PUT(int, value));
+  value = reverse_word  & 15;
+  sim_schedule(display_247, 0.0, DATA, SIM_PUT(int, value));
+  }
+
+ if (mem_address == 25)
+  {
+  value = (reverse_word >> 28) & 15;
+  sim_schedule(display_250, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 24) & 15;
+  sim_schedule(display_251, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 20) & 15;
+  sim_schedule(display_252, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 16) & 15;
+  sim_schedule(display_253, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 12) & 15;
+  sim_schedule(display_254, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 8) & 15;
+  sim_schedule(display_255, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 4) & 15;
+  sim_schedule(display_256, 0.0, DATA, SIM_PUT(int, value));
+  value = reverse_word  & 15;
+  sim_schedule(display_257, 0.0, DATA, SIM_PUT(int, value));
+  }
+
+ if (mem_address == 26)
+  {
+  value = (reverse_word >> 28) & 15;
+  sim_schedule(display_260, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 24) & 15;
+  sim_schedule(display_261, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 20) & 15;
+  sim_schedule(display_262, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 16) & 15;
+  sim_schedule(display_263, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 12) & 15;
+  sim_schedule(display_264, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 8) & 15;
+  sim_schedule(display_265, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 4) & 15;
+  sim_schedule(display_266, 0.0, DATA, SIM_PUT(int, value));
+  value = reverse_word  & 15;
+  sim_schedule(display_267, 0.0, DATA, SIM_PUT(int, value));
+  }
+
+ if (mem_address == 27)
+  {
+  value = (reverse_word >> 28) & 15;
+  sim_schedule(display_270, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 24) & 15;
+  sim_schedule(display_271, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 20) & 15;
+  sim_schedule(display_272, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 16) & 15;
+  sim_schedule(display_273, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 12) & 15;
+  sim_schedule(display_274, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 8) & 15;
+  sim_schedule(display_275, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 4) & 15;
+  sim_schedule(display_276, 0.0, DATA, SIM_PUT(int, value));
+  value = reverse_word  & 15;
+  sim_schedule(display_277, 0.0, DATA, SIM_PUT(int, value));
+  }
+
+ if (mem_address == 28)
+  {
+  value = (reverse_word >> 28) & 15;
+  sim_schedule(display_280, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 24) & 15;
+  sim_schedule(display_281, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 20) & 15;
+  sim_schedule(display_282, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 16) & 15;
+  sim_schedule(display_283, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 12) & 15;
+  sim_schedule(display_284, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 8) & 15;
+  sim_schedule(display_285, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 4) & 15;
+  sim_schedule(display_286, 0.0, DATA, SIM_PUT(int, value));
+  value = reverse_word  & 15;
+  sim_schedule(display_287, 0.0, DATA, SIM_PUT(int, value));
+  }
+
+ if (mem_address == 29)
+  {
+  value = (reverse_word >> 28) & 15;
+  sim_schedule(display_290, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 24) & 15;
+  sim_schedule(display_291, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 20) & 15;
+  sim_schedule(display_292, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 16) & 15;
+  sim_schedule(display_293, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 12) & 15;
+  sim_schedule(display_294, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 8) & 15;
+  sim_schedule(display_295, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 4) & 15;
+  sim_schedule(display_296, 0.0, DATA, SIM_PUT(int, value));
+  value = reverse_word  & 15;
+  sim_schedule(display_297, 0.0, DATA, SIM_PUT(int, value));
+  }
+
+ if (mem_address == 30)
+  {
+  value = (reverse_word >> 28) & 15;
+  sim_schedule(display_300, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 24) & 15;
+  sim_schedule(display_301, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 20) & 15;
+  sim_schedule(display_302, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 16) & 15;
+  sim_schedule(display_303, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 12) & 15;
+  sim_schedule(display_304, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 8) & 15;
+  sim_schedule(display_305, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 4) & 15;
+  sim_schedule(display_306, 0.0, DATA, SIM_PUT(int, value));
+  value = reverse_word  & 15;
+  sim_schedule(display_307, 0.0, DATA, SIM_PUT(int, value));
+  }
+
+ if (mem_address == 31)
+  {
+  value = (reverse_word >> 28) & 15;
+  sim_schedule(display_310, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 24) & 15;
+  sim_schedule(display_311, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 20) & 15;
+  sim_schedule(display_312, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 16) & 15;
+  sim_schedule(display_313, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 12) & 15;
+  sim_schedule(display_314, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 8) & 15;
+  sim_schedule(display_315, 0.0, DATA, SIM_PUT(int, value));
+  value = (reverse_word >> 4) & 15;
+  sim_schedule(display_316, 0.0, DATA, SIM_PUT(int, value));
+  value = reverse_word  & 15;
+  sim_schedule(display_317, 0.0, DATA, SIM_PUT(int, value));
+  }
+  dump_state_i();
+ }
+
+$pre
+
+myStaticisor = (staticisor*) sim.get_entity( sim.get_entity_id( "STATICISOR" ) );
+
+display_000 = sim.get_entity_id("CRT_000");
+display_001 = sim.get_entity_id("CRT_001");
+display_002 = sim.get_entity_id("CRT_002");
+display_003 = sim.get_entity_id("CRT_003");
+display_004 = sim.get_entity_id("CRT_004");
+display_005 = sim.get_entity_id("CRT_005");
+display_006 = sim.get_entity_id("CRT_006");
+display_007 = sim.get_entity_id("CRT_007");
+
+display_010 = sim.get_entity_id("CRT_010");
+display_011 = sim.get_entity_id("CRT_011");
+display_012 = sim.get_entity_id("CRT_012");
+display_013 = sim.get_entity_id("CRT_013");
+display_014 = sim.get_entity_id("CRT_014");
+display_015 = sim.get_entity_id("CRT_015");
+display_016 = sim.get_entity_id("CRT_016");
+display_017 = sim.get_entity_id("CRT_017");
+
+display_020 = sim.get_entity_id("CRT_020");
+display_021 = sim.get_entity_id("CRT_021");
+display_022 = sim.get_entity_id("CRT_022");
+display_023 = sim.get_entity_id("CRT_023");
+display_024 = sim.get_entity_id("CRT_024");
+display_025 = sim.get_entity_id("CRT_025");
+display_026 = sim.get_entity_id("CRT_026");
+display_027 = sim.get_entity_id("CRT_027");
+
+display_030 = sim.get_entity_id("CRT_030");
+display_031 = sim.get_entity_id("CRT_031");
+display_032 = sim.get_entity_id("CRT_032");
+display_033 = sim.get_entity_id("CRT_033");
+display_034 = sim.get_entity_id("CRT_034");
+display_035 = sim.get_entity_id("CRT_035");
+display_036 = sim.get_entity_id("CRT_036");
+display_037 = sim.get_entity_id("CRT_037");
+
+display_040 = sim.get_entity_id("CRT_040");
+display_041 = sim.get_entity_id("CRT_041");
+display_042 = sim.get_entity_id("CRT_042");
+display_043 = sim.get_entity_id("CRT_043");
+display_044 = sim.get_entity_id("CRT_044");
+display_045 = sim.get_entity_id("CRT_045");
+display_046 = sim.get_entity_id("CRT_046");
+display_047 = sim.get_entity_id("CRT_047");
+
+display_050 = sim.get_entity_id("CRT_050");
+display_051 = sim.get_entity_id("CRT_051");
+display_052 = sim.get_entity_id("CRT_052");
+display_053 = sim.get_entity_id("CRT_053");
+display_054 = sim.get_entity_id("CRT_054");
+display_055 = sim.get_entity_id("CRT_055");
+display_056 = sim.get_entity_id("CRT_056");
+display_057 = sim.get_entity_id("CRT_057");
+
+display_060 = sim.get_entity_id("CRT_060");
+display_061 = sim.get_entity_id("CRT_061");
+display_062 = sim.get_entity_id("CRT_062");
+display_063 = sim.get_entity_id("CRT_063");
+display_064 = sim.get_entity_id("CRT_064");
+display_065 = sim.get_entity_id("CRT_065");
+display_066 = sim.get_entity_id("CRT_066");
+display_067 = sim.get_entity_id("CRT_067");
+
+display_070 = sim.get_entity_id("CRT_070");
+display_071 = sim.get_entity_id("CRT_071");
+display_072 = sim.get_entity_id("CRT_072");
+display_073 = sim.get_entity_id("CRT_073");
+display_074 = sim.get_entity_id("CRT_074");
+display_075 = sim.get_entity_id("CRT_075");
+display_076 = sim.get_entity_id("CRT_076");
+display_077 = sim.get_entity_id("CRT_077");
+
+display_080 = sim.get_entity_id("CRT_080");
+display_081 = sim.get_entity_id("CRT_081");
+display_082 = sim.get_entity_id("CRT_082");
+display_083 = sim.get_entity_id("CRT_083");
+display_084 = sim.get_entity_id("CRT_084");
+display_085 = sim.get_entity_id("CRT_085");
+display_086 = sim.get_entity_id("CRT_086");
+display_087 = sim.get_entity_id("CRT_087");
+
+display_090 = sim.get_entity_id("CRT_090");
+display_091 = sim.get_entity_id("CRT_091");
+display_092 = sim.get_entity_id("CRT_092");
+display_093 = sim.get_entity_id("CRT_093");
+display_094 = sim.get_entity_id("CRT_094");
+display_095 = sim.get_entity_id("CRT_095");
+display_096 = sim.get_entity_id("CRT_096");
+display_097 = sim.get_entity_id("CRT_097");
+
+display_100 = sim.get_entity_id("CRT_100");
+display_101 = sim.get_entity_id("CRT_101");
+display_102 = sim.get_entity_id("CRT_102");
+display_103 = sim.get_entity_id("CRT_103");
+display_104 = sim.get_entity_id("CRT_104");
+display_105 = sim.get_entity_id("CRT_105");
+display_106 = sim.get_entity_id("CRT_106");
+display_107 = sim.get_entity_id("CRT_107");
+
+display_110 = sim.get_entity_id("CRT_110");
+display_111 = sim.get_entity_id("CRT_111");
+display_112 = sim.get_entity_id("CRT_112");
+display_113 = sim.get_entity_id("CRT_113");
+display_114 = sim.get_entity_id("CRT_114");
+display_115 = sim.get_entity_id("CRT_115");
+display_116 = sim.get_entity_id("CRT_116");
+display_117 = sim.get_entity_id("CRT_117");
+
+display_120 = sim.get_entity_id("CRT_120");
+display_121 = sim.get_entity_id("CRT_121");
+display_122 = sim.get_entity_id("CRT_122");
+display_123 = sim.get_entity_id("CRT_123");
+display_124 = sim.get_entity_id("CRT_124");
+display_125 = sim.get_entity_id("CRT_125");
+display_126 = sim.get_entity_id("CRT_126");
+display_127 = sim.get_entity_id("CRT_127");
+
+display_130 = sim.get_entity_id("CRT_130");
+display_131 = sim.get_entity_id("CRT_131");
+display_132 = sim.get_entity_id("CRT_132");
+display_133 = sim.get_entity_id("CRT_133");
+display_134 = sim.get_entity_id("CRT_134");
+display_135 = sim.get_entity_id("CRT_135");
+display_136 = sim.get_entity_id("CRT_136");
+display_137 = sim.get_entity_id("CRT_137");
+
+display_140 = sim.get_entity_id("CRT_140");
+display_141 = sim.get_entity_id("CRT_141");
+display_142 = sim.get_entity_id("CRT_142");
+display_143 = sim.get_entity_id("CRT_143");
+display_144 = sim.get_entity_id("CRT_144");
+display_145 = sim.get_entity_id("CRT_145");
+display_146 = sim.get_entity_id("CRT_146");
+display_147 = sim.get_entity_id("CRT_147");
+
+display_150 = sim.get_entity_id("CRT_150");
+display_151 = sim.get_entity_id("CRT_151");
+display_152 = sim.get_entity_id("CRT_152");
+display_153 = sim.get_entity_id("CRT_153");
+display_154 = sim.get_entity_id("CRT_154");
+display_155 = sim.get_entity_id("CRT_155");
+display_156 = sim.get_entity_id("CRT_156");
+display_157 = sim.get_entity_id("CRT_157");
+
+display_160 = sim.get_entity_id("CRT_160");
+display_161 = sim.get_entity_id("CRT_161");
+display_162 = sim.get_entity_id("CRT_162");
+display_163 = sim.get_entity_id("CRT_163");
+display_164 = sim.get_entity_id("CRT_164");
+display_165 = sim.get_entity_id("CRT_165");
+display_166 = sim.get_entity_id("CRT_166");
+display_167 = sim.get_entity_id("CRT_167");
+
+display_170 = sim.get_entity_id("CRT_170");
+display_171 = sim.get_entity_id("CRT_171");
+display_172 = sim.get_entity_id("CRT_172");
+display_173 = sim.get_entity_id("CRT_173");
+display_174 = sim.get_entity_id("CRT_174");
+display_175 = sim.get_entity_id("CRT_175");
+display_176 = sim.get_entity_id("CRT_176");
+display_177 = sim.get_entity_id("CRT_177");
+
+display_180 = sim.get_entity_id("CRT_180");
+display_181 = sim.get_entity_id("CRT_181");
+display_182 = sim.get_entity_id("CRT_182");
+display_183 = sim.get_entity_id("CRT_183");
+display_184 = sim.get_entity_id("CRT_184");
+display_185 = sim.get_entity_id("CRT_185");
+display_186 = sim.get_entity_id("CRT_186");
+display_187 = sim.get_entity_id("CRT_187");
+
+display_190 = sim.get_entity_id("CRT_190");
+display_191 = sim.get_entity_id("CRT_191");
+display_192 = sim.get_entity_id("CRT_192");
+display_193 = sim.get_entity_id("CRT_193");
+display_194 = sim.get_entity_id("CRT_194");
+display_195 = sim.get_entity_id("CRT_195");
+display_196 = sim.get_entity_id("CRT_196");
+display_197 = sim.get_entity_id("CRT_197");
+
+display_200 = sim.get_entity_id("CRT_200");
+display_201 = sim.get_entity_id("CRT_201");
+display_202 = sim.get_entity_id("CRT_202");
+display_203 = sim.get_entity_id("CRT_203");
+display_204 = sim.get_entity_id("CRT_204");
+display_205 = sim.get_entity_id("CRT_205");
+display_206 = sim.get_entity_id("CRT_206");
+display_207 = sim.get_entity_id("CRT_207");
+
+display_210 = sim.get_entity_id("CRT_210");
+display_211 = sim.get_entity_id("CRT_211");
+display_212 = sim.get_entity_id("CRT_212");
+display_213 = sim.get_entity_id("CRT_213");
+display_214 = sim.get_entity_id("CRT_214");
+display_215 = sim.get_entity_id("CRT_215");
+display_216 = sim.get_entity_id("CRT_216");
+display_217 = sim.get_entity_id("CRT_217");
+
+display_220 = sim.get_entity_id("CRT_220");
+display_221 = sim.get_entity_id("CRT_221");
+display_222 = sim.get_entity_id("CRT_222");
+display_223 = sim.get_entity_id("CRT_223");
+display_224 = sim.get_entity_id("CRT_224");
+display_225 = sim.get_entity_id("CRT_225");
+display_226 = sim.get_entity_id("CRT_226");
+display_227 = sim.get_entity_id("CRT_227");
+
+display_230 = sim.get_entity_id("CRT_230");
+display_231 = sim.get_entity_id("CRT_231");
+display_232 = sim.get_entity_id("CRT_232");
+display_233 = sim.get_entity_id("CRT_233");
+display_234 = sim.get_entity_id("CRT_234");
+display_235 = sim.get_entity_id("CRT_235");
+display_236 = sim.get_entity_id("CRT_236");
+display_237 = sim.get_entity_id("CRT_237");
+
+display_240 = sim.get_entity_id("CRT_240");
+display_241 = sim.get_entity_id("CRT_241");
+display_242 = sim.get_entity_id("CRT_242");
+display_243 = sim.get_entity_id("CRT_243");
+display_244 = sim.get_entity_id("CRT_244");
+display_245 = sim.get_entity_id("CRT_245");
+display_246 = sim.get_entity_id("CRT_246");
+display_247 = sim.get_entity_id("CRT_247");
+
+display_250 = sim.get_entity_id("CRT_250");
+display_251 = sim.get_entity_id("CRT_251");
+display_252 = sim.get_entity_id("CRT_252");
+display_253 = sim.get_entity_id("CRT_253");
+display_254 = sim.get_entity_id("CRT_254");
+display_255 = sim.get_entity_id("CRT_255");
+display_256 = sim.get_entity_id("CRT_256");
+display_257 = sim.get_entity_id("CRT_257");
+
+display_260 = sim.get_entity_id("CRT_260");
+display_261 = sim.get_entity_id("CRT_261");
+display_262 = sim.get_entity_id("CRT_262");
+display_263 = sim.get_entity_id("CRT_263");
+display_264 = sim.get_entity_id("CRT_264");
+display_265 = sim.get_entity_id("CRT_265");
+display_266 = sim.get_entity_id("CRT_266");
+display_267 = sim.get_entity_id("CRT_267");
+
+display_270 = sim.get_entity_id("CRT_270");
+display_271 = sim.get_entity_id("CRT_271");
+display_272 = sim.get_entity_id("CRT_272");
+display_273 = sim.get_entity_id("CRT_273");
+display_274 = sim.get_entity_id("CRT_274");
+display_275 = sim.get_entity_id("CRT_275");
+display_276 = sim.get_entity_id("CRT_276");
+display_277 = sim.get_entity_id("CRT_277");
+
+display_280 = sim.get_entity_id("CRT_280");
+display_281 = sim.get_entity_id("CRT_281");
+display_282 = sim.get_entity_id("CRT_282");
+display_283 = sim.get_entity_id("CRT_283");
+display_284 = sim.get_entity_id("CRT_284");
+display_285 = sim.get_entity_id("CRT_285");
+display_286 = sim.get_entity_id("CRT_286");
+display_287 = sim.get_entity_id("CRT_287");
+
+display_290 = sim.get_entity_id("CRT_290");
+display_291 = sim.get_entity_id("CRT_291");
+display_292 = sim.get_entity_id("CRT_292");
+display_293 = sim.get_entity_id("CRT_293");
+display_294 = sim.get_entity_id("CRT_294");
+display_295 = sim.get_entity_id("CRT_295");
+display_296 = sim.get_entity_id("CRT_296");
+display_297 = sim.get_entity_id("CRT_297");
+
+display_300 = sim.get_entity_id("CRT_300");
+display_301 = sim.get_entity_id("CRT_301");
+display_302 = sim.get_entity_id("CRT_302");
+display_303 = sim.get_entity_id("CRT_303");
+display_304 = sim.get_entity_id("CRT_304");
+display_305 = sim.get_entity_id("CRT_305");
+display_306 = sim.get_entity_id("CRT_306");
+display_307 = sim.get_entity_id("CRT_307");
+
+display_310 = sim.get_entity_id("CRT_310");
+display_311 = sim.get_entity_id("CRT_311");
+display_312 = sim.get_entity_id("CRT_312");
+display_313 = sim.get_entity_id("CRT_313");
+display_314 = sim.get_entity_id("CRT_314");
+display_315 = sim.get_entity_id("CRT_315");
+display_316 = sim.get_entity_id("CRT_316");
+display_317 = sim.get_entity_id("CRT_317");
+
+
+  i_request = false;
+  a_request = false;
+  s_request = false;
+  w_request = false;
+  mem_address = 0;
+  strcpy(address_string.s5, "00000");
+  strcpy(mem_request.address.s5, "00000");
+  strcpy(instrn_string.s16, "0000000000000000");
+  strcpy(data_string.s32, "00000000000000000000000000000000");
+  my_state = M_IDLE;
+  dump_state();
+
+$phase0
+
+$phase1
+
+// predicates for use in sim_waiting tests
+
+  sim_from_port M_request(request);
+  sim_from_port W_data(data_in);
+
+  if  (sim_waiting(ev, M_request) > 0)
+     {
+	SIM_CAST_DEL(t_mem_request, mem_request, ev);
+	strcpy(address_string.s5, mem_request.address.s5);
+	if (mem_request.type == 'I')
+	 {i_request = true;
+//printf("MEMORY: getting instruction request \n");
+         }
+	if (mem_request.type == 'A')
+	 {a_request = true;
+//printf("MEMORY: getting read request for branch operand , sent to Adder \n");
+}
+	if (mem_request.type == 'S')
+	 {s_request = true;
+//printf("MEMORY: getting read request for arithmetic operand, sent to Subtractor \n");
+}
+	if (mem_request.type == 'W')
+	 {w_request = true;
+}
+	// convert address_string to integer mem_address 
+
+	mem_address = string_to_int (address_string.s5, 5);
+// printf("MEMORY: address = %d \n", mem_address);
+
+	if (i_request || a_request || s_request)							// read word from memory
+	 {
+	  word = main_mem[mem_address];
+	  rw = 'R';
+	  updateCRT(rw, mem_address);
+	  int_to_string32( word, data_string.s32);						// create data_string
+       }															// end of read_request
+     }															// end of M_request
+
+ sim_hold(5);
+ 
+ if (i_request)
+	{
+	 send_S32_PKT(instrn_out, data_string);
+	 rw = 'W';
+	  updateCRT(rw, mem_address);
+	 i_request = false;
+//printf("MEMORY sending instruction to Control \n");
+	}
+
+  if (a_request)
+	{
+	 send_S32_PKT(add_data_out, data_string);
+	 rw = 'W';
+	  updateCRT(rw, mem_address);
+	 a_request = false;
+//printf("MEMORY sending data to Adder \n");
+	}
+
+  if (s_request)
+	{
+	 send_S32_PKT(sub_data_out, data_string);
+	 rw = 'W';
+	  updateCRT(rw, mem_address);
+	 s_request = false;
+//printf("MEMORY sending data to Subtractor \n");
+	}
+
+  if (w_request)
+	{
+	  if  (sim_waiting(ev, W_data) > 0)
+	   {SIM_CAST_DEL(t_thirtytwo_bit, data_string, ev);}
+	  mem_value = string_to_int (data_string.s32, 32);		// convert data_string to integer mem_value
+	  main_mem.Update (mem_address, mem_value);
+	  rw = 'W';
+	  updateCRT(rw, mem_address);
+	  w_request = false;
+	}
+//  dump_state();
+ 	// end of ClockPhase 0
+
+	// end of ClockPhase 1
+

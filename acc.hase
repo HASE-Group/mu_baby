@@ -1,0 +1,58 @@
+// Project	SSEM
+// Entity	ACCUMULATOR
+// File	acc.hase
+// Date	June 2021
+
+/*
+The ACCUMULATOR receives results from the SUBTRACTOR as a string of digits.
+It converts this string to an integer value for display purposes but keeps the string
+as is so that it can be sent to the SUBTRACTOR for a SUB order or to the MEMORY
+for a STORE order, as invoked but the Staticisor. 
+*/
+
+$class_decls
+
+void transmit_ACC_to_sub();
+void transmit_ACC_to_memory();
+
+// Variable Declarations
+
+ bool acc_control;
+ bool bit_value, send_to_stat;
+ char char_bit, fn_string[3];
+ int   address, i;
+ t_eight_bit staticisor_string;
+ t_thirtytwo_bit acc_input, acc_string;
+
+
+$class_defs
+
+void acc::transmit_ACC_to_sub()
+  { send_S32_PKT(sub_data_out, acc_string); }
+
+void acc::transmit_ACC_to_memory()
+  { send_S32_PKT(mem_data_out, acc_string); }  
+
+$pre
+
+ acc_control = false;
+ ACC_value = 0;
+
+$phase0
+
+$phase1
+
+// predicates for use in sim_waiting test
+
+  sim_from_port S_input (data_in);
+
+  if (sim_waiting(ev, S_input) > 0)
+   {
+    SIM_CAST_DEL (t_thirtytwo_bit, acc_string, ev);
+    ACC_value = string_to_int (acc_string.s32, 32);			 // convert acc_string to integer ACC_value
+   }
+  dump_state_i();
+
+$report
+
+

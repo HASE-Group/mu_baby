@@ -1,0 +1,62 @@
+// Project	SSEM
+// Entity	Timing Bar Diagram
+// File	time_bar.hase
+// Date	July 2021
+
+/*
+The timing bar displays the 4 beats in an instruction bar and shows which one is current.
+The actions that occur in clock phases 0 and 1 of each beat are as follows:
+
+beat 0.0: Adder increments CI
+beat 0.1 adder output sent to Control and Staticisor
+beat 1.0: Control receives adder output, copies to Staticisor, invokes fetch instruction
+beat 1.1: Memory reads instruction
+beat 2.0: Control receives instruction,  copies PI address to Staticisor, invokes fetch operand
+beat 2.1: Memory reads operand if required
+beat 3.0: execute instruction
+beat 3.1: clear PI, send CI to adder, set Adder control bits
+*/
+
+
+$class_decls
+
+  Clock * myClock;
+
+// Variable Declarations
+
+ int beat;
+
+$class_defs
+
+$pre
+
+ myClock = (Clock*) sim.get_entity( sim.get_entity_id( "CLOCK" ) );
+ beat = 0;
+ my_state = BAR0;
+
+$phase0
+
+ if (myClock->cycle > 0)
+  {
+   if (beat == 0)
+    {my_state = BEAT0;}
+
+   if (beat == 1)
+    {my_state = BEAT1;}
+
+   if (beat == 2)
+    {my_state = BEAT2;}
+
+   if (beat == 3)
+    {my_state = BEAT3;}
+  dump_state_i();
+  }
+
+$phase1
+
+ if (myClock->cycle > 1)
+  {beat = (beat + 1) & 3;}
+
+$report
+
+

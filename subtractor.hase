@@ -1,0 +1,110 @@
+
+// Project:	SSEM
+// Entity	Subtractor
+// File	subtractor.hase
+// Date:	Aug 2021
+
+// This unit has two data inputs,  mem_input and acc_input  and one data output.
+// mem_input comes from the Memory, acc_input from the Accumulator.
+// For the LDN instruction, a control bit set by the Staticisor sets the acc_input to zero.
+// The output is connected to the Accumulator.
+
+$class_decls
+
+//structures and variables
+
+  bool sub_control;
+  bool acc_ready, mem_ready, sub_done;
+  char char_bit;
+  int i, t_result;
+
+  int acc_value, mem_value, sub_result, bit_value;
+  t_thirtytwo_bit acc_input, mem_input, sub_string;
+
+//classes
+
+$class_defs
+
+$pre
+
+  acc_ready = false;
+  mem_ready = false;
+  sub_done = false;
+  my_state = SUB_IDLE;
+  dump_state();
+
+  strcpy (acc_input.s32, "00000000000000000000000000000000");
+  strcpy (mem_input.s32, "00000000000000000000000000000000");
+  strcpy (sub_string.s32, "00000000000000000000000000000000");
+
+$phase0
+
+// predicates for use in sim_waiting test
+
+  sim_from_port A_input (acc_data_in);
+  sim_from_port M_input (mem_data_in);
+
+  acc_value = 0;
+
+    // DEAL WITH INPUTS
+
+  if (sim_waiting (ev, M_input) > 0)
+     {
+	SIM_CAST_DEL( t_thirtytwo_bit, mem_input, ev);
+	mem_value = string_to_int (mem_input.s32, 32);
+	mem_ready = true;
+	my_state = SUB_BUSY;
+	dump_state();
+     }
+
+  if (sim_waiting (ev, A_input) > 0)
+     {
+	SIM_CAST_DEL( t_thirtytwo_bit, acc_input, ev);
+	acc_value = string_to_int (acc_input.s32, 32);
+	acc_ready = true;
+     }
+
+// perform subtraction
+
+  if ( ( (sub_control == 1) && acc_ready) &&  mem_ready )
+    {
+	sub_result = acc_value - mem_value;
+//printf("SUBTRACTOR: acc = %d - mem = %d  =  %d\n", acc_value, mem_value, sub_result);
+	sub_done = true;
+    }
+
+  if ( (sub_control == 0) && mem_ready )
+    {
+	sub_result = 0 - mem_value;
+//printf("SUBTRACTOR: 0 - mem = %d \n", sub_result);
+	sub_done = true;
+    }
+
+// convert integer result to string
+    int_to_string32 (sub_result, sub_string.s32);
+    t_result = (sub_result >> 31) & 1;
+
+sim_hold(5);
+
+  if (sub_done)
+   {
+    send_S32_PKT(data_out, sub_string);
+    send_DATA(test_out, t_result);
+    acc_ready = false;
+    mem_ready = false;
+    sub_done = false;
+    my_state = SUB_IDLE;
+    dump_state();
+   }
+
+$phase1
+
+
+
+
+
+
+
+
+
+

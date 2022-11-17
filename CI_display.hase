@@ -1,0 +1,28 @@
+// Project:	SSEM
+// Entity:	CI_display
+// File:	CI_display.hase
+// Date	May 2021
+
+$class_decls
+
+int value;
+
+$body
+
+while (1)
+{
+  sim_get_next(ev);
+  SIM_CAST (int, value, ev);
+
+ switch (value)
+  {
+    case 0:
+	my_state = S0;
+	break;
+   case 1:
+	my_state = S1;
+	break;
+  }
+dump_state_i();
+}
+

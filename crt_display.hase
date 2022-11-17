@@ -1,0 +1,73 @@
+// Project:	SSEM
+// Entity:	CRT display
+// File:	crt_display.hase
+// Date	May 2021
+
+$class_decls
+
+int value;
+
+// function
+
+
+$body
+
+while (1)
+{
+  sim_get_next(ev);
+  SIM_CAST (int, value, ev);
+
+ switch (value)
+  {
+    case 0:
+	my_state = S0;
+	break;
+   case 1:
+	my_state = S1;
+	break;
+    case 2:
+	my_state = S2;
+	break;  
+    case 3:
+	my_state = S3;
+	break;  
+    case 4:
+	my_state = S4;
+	break;  
+    case 5:
+	my_state = S5;
+	break;  
+    case 6:
+	my_state = S6;
+	break;  
+    case 7:
+	my_state = S7;
+	break;  
+    case 8:
+	my_state = S8;
+	break;  
+    case 9:
+	my_state = S9;
+	break;  
+    case 10:
+	my_state = S10;
+	break;  
+    case 11:
+	my_state = S11;
+	break;  
+    case 12:
+	my_state = S12;
+	break;  
+    case 13:
+	my_state = S13;
+	break;  
+    case 14:
+	my_state = S14;
+	break;  
+    case 15:
+	my_state = S15;
+	break;  
+ }
+dump_state();
+}
+

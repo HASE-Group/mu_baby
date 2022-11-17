@@ -1,0 +1,52 @@
+// Project	SSEM
+// Entity	TEST
+// File	test.hase
+// Date	July 2021
+
+/*
+The TEST unit receives results from the SUBTRACTOR as a string of digits.
+It uses the m.s. (sign digit) to set the T bit to 1 if the result is negative and
+to 0 otherwise.
+*/
+
+$class_decls
+
+
+// Variable Declarations
+
+ bool reset_T;
+ int t_result;
+ t_thirtytwo_bit  test_string;
+
+$class_defs
+
+$pre
+
+ T = 0;
+ reset_T = false;
+
+$phase0
+
+// predicates for use in sim_waiting test
+
+  sim_from_port T_input (data_in);
+
+  if (sim_waiting(ev, T_input) > 0)
+   {
+    SIM_CAST_DEL (int, t_result, ev);
+
+  if (t_result == 1)
+   {T = 1;
+     my_state = T_1;}
+  else
+    {T = 0;
+     my_state = T_0;}
+	dump_state_i();
+   }
+
+$phase1
+
+
+$report
+
+
