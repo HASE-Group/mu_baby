@@ -1,7 +1,7 @@
 // Project	SSEM
 // Entity	INPUT
 // File	input.hase (derived from Cray-1 program.hase)
-// Date	May 2021
+// Date	May 2021, modified Jan 2023 to allow 1 of 4 stored programs to be selected
 
 $class_decls
 
@@ -11,9 +11,9 @@ $class_decls
  memory * myMemory;
 
  bool stop_error, address_error, stop_found;
- int fn, data;
+ int origin, fn, data;
  int i, j, rw;								// memory address of 32-bit word
- int fn_error_line, ad_error_line;
+ int fn_error_line, ad_error_line, prog_no_error;
  int last_inst_line;
  int integer_instrn[32];
  t_ssem_instrn_set instrn;				// instruction word
@@ -28,11 +28,16 @@ $pre
  rw = 'W';
  address_error = false;
  stop_error = false;
+ prog_no_error = false;
  stop_found = false;
+ if ((Prog_No >= 0) && (Prog_No < 4))
+  {origin = Prog_No * 32;}
+ else
+  {prog_no_error = true;}
 
- for (i=0; i<32; i++)
+ for (i=0; fn!=8; i++)
   {
-    instrn = prog_mem[i];
+    instrn = prog_mem[origin + i];
 /*
 convert function to number, shift left 13 places store in array.
 Check that address field value <32, OR in address field
@@ -55,8 +60,7 @@ Check that address field value <32, OR in address field
 	else if (instrn.function ==  t_ssem_instrn_set::STP)
 	    {fn = 7;										// function 7
 	     stop_found = true;
-printf("INPUT setting stop_found = true \n");
-}
+	}
 	else if (instrn.function ==  t_ssem_instrn_set::EOP)
 	    {fn = 8;
 	     last_inst_line = i;}
@@ -64,12 +68,13 @@ printf("INPUT setting stop_found = true \n");
 	if (instrn.S > 31)
 	 {
 	 address_error = true;
-	 ad_error_line = i;
+	 ad_error_line = origin + i;
 	}
 	integer_instrn[i] = fn << 13;
 	integer_instrn[i] = integer_instrn[i] | instrn.S;
 	if (fn < 8)
           {myMemory->main_mem.Update((i + 1), integer_instrn[i]);}
+
 						// +1 because Cl is incremented before instruction access
  }
 
@@ -77,7 +82,7 @@ printf("INPUT setting stop_found = true \n");
   
  for (i = 0; i < (32 - last_inst_line);  i++)
   {
-   data = data_mem[i];
+   data = data_mem[origin + i];
    myMemory->main_mem.Update((last_inst_line+i), data);
   }
 
@@ -104,6 +109,10 @@ $report
  if (address_error)
   {printf("address error on line %d: address must be in the range 0-31 \n", ad_error_line);}
 
+if (prog_no_error)
+ {printf("Prog_No must be in range 0 - 3 \n");}
+
 if (stop_error)
  {printf("no STOP instruction in program \n");}
+
 

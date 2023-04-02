@@ -19,6 +19,7 @@ class staticisor;
 class time_bar;
 class memory;
 class crt_display;
+class input;
 
 int string_to_int(char* str, int length);
 
