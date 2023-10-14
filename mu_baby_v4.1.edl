@@ -1,0 +1,590 @@
+PROJECT(
+	PREAMBLE(
+		 NAME "MU_Baby"
+		 AUTHOR "Roland Ibbett"
+		 VERSION 4.1
+		 DESCRIPTION "Manchester Baby Computer" 
+		 )	
+	PARAMLIB (
+
+-- DEFINITION OF INSTRUCTION SET
+
+	INSTR (t_ssem_instrn_set, [
+			(JMP, RINT (S, 0)),
+			(JRP, RINT (S, 0)),
+			(LDN, RINT (S, 0)),
+			(STO, RINT (S, 0)),
+			(SUB, RINT (S, 0)),
+			(CMP, RINT (S, 0)),
+			(STP, RINT (S, 0)),
+			(EOP) ], function);
+
+-- DEFINITIONS OF REGISTERS AND MEMORY ARRAYS
+
+-- definition of program instruction memory array
+	ARRAYI (ProgMem, t_ssem_instrn_set);
+
+-- definition of program data memory array
+	ARRAY (DataMem, int);
+
+-- definition of memory word
+	STRUCT (mem_word, [RINT(data, 0)]);
+
+-- definition of  memory array
+	ARRAY (mem_array, int);
+
+-- definition of 5-bit data string
+	STRUCT (t_five_bit, [RSTRING(s5, "00000")] );
+
+-- definition of 6-bit data string
+	STRUCT (t_six_bit, [RSTRING(s6, "000000")] );
+
+-- definition of function string
+	STRUCT (t_eight_bit, [RSTRING(s8, "00000000")] );
+
+-- definition of 16-bit data string
+	STRUCT (t_sixteen_bit, [RSTRING(s16, "0000000000000000")] );
+
+-- definition of 32-bit data string
+	STRUCT (t_thirtytwo_bit, [RSTRING(s32, "00000000000000000000000000000000")] );
+
+-- definition of Present Instruction register
+	STRUCT (t_pi_display, [RSTRING(address, "_____"),
+						RSTRING(fn, "___")]);
+
+-- definition of Staticisor
+	STRUCT (t_staticisor, [RSTRING(fn, "___"),
+						RSTRING(address, "_____")]);
+
+-- DEFINITIONS OF PACKETS
+
+-- definition of memory read/write request packet
+	STRUCT (t_mem_request, [RCHAR(type, '-'),
+				 RSTRUCT(t_five_bit, address)]);
+
+-- DEFINITIONS OF LINKS
+
+-- definition of instruction links
+	LINK(l_instr,[(INSTRUCTION,RINSTR(t_ssem_instrn_set, instrn))]);
+
+-- definition of data link
+	LINK (l_data,[(DATA,RINT(value,0))]);
+
+-- definition of string link
+	LINK (l_string, [ (ADDRESS,RSTRUCT (t_five_bit, DP)),
+				(ADD_CONTROL, RSTRUCT(t_six_bit, DP)),
+				(STAT_PKT, RSTRUCT (t_eight_bit, DP)),
+				(S5_PKT,RSTRUCT (t_mem_request, DP)),
+				(S16_PKT,RSTRUCT (t_sixteen_bit, DP)),
+			  (S32_PKT,RSTRUCT (t_thirtytwo_bit, DP))] );
+)
+	GLOBALS (
+			RINT (Program, 1);
+	)
+
+	ENTITYLIB (
+
+	ABSTRACT Biclocked sync ( )
+	ENTITY Clock sync ( )
+	ENTITY Clockphase sync ( )
+
+	ENTITY time_bar (
+		EXTENDS (Biclocked)
+		DESCRIPTION ("Beat Display")
+		STATES (BAR0, BEAT0, BEAT1, BEAT2, BEAT3)
+		PARAMS ()
+	  	PORTS ()
+		    );
+
+	ENTITY input (
+		EXTENDS (Biclocked)
+		DESCRIPTION ("Program and Data Input")
+		PARAMS ( 
+			RARRAY ( ProgMem , prog_mem, 128 );
+			RARRAY ( DataMem , data_mem, 128 );
+		)
+		PORTS (
+			PORT (to_memory, l_instr, SOURCE)
+		)
+	);
+
+	ENTITY control (
+		EXTENDS (Biclocked)
+		DESCRIPTION ("Control")
+		STATES (C_IDLE, C_BUSY)
+		PARAMS (
+			RSTRING (CI, "00000");
+			RSTRUCT (t_pi_display, PI)
+			RINT (I_COUNT, 0)
+		)
+		PORTS (
+			PORT(to_stat, l_string, SOURCE);
+			PORT(to_adder, l_string, SOURCE);
+			PORT(instrn_in, l_string, DESTINATION);
+			PORT(from_adder, l_string, DESTINATION);
+			)
+		);
+
+	ENTITY staticisor (
+		EXTENDS (Biclocked)
+		DESCRIPTION ("Staticisor")
+		STATES (STAT_IDLE)
+		PARAMS (
+				RSTRING(F, "JMP");
+				RINT(S,0);
+				)
+		PORTS (
+			PORT (from_control, l_string, DESTINATION);
+			PORT (to_memory, l_string, SOURCE);
+			PORT (adder_control, l_string, SOURCE);
+			PORT (to_test, l_data, SOURCE);
+			)
+		);
+
+	ENTITY adder (
+		EXTENDS (Biclocked)
+		DESCRIPTION ("Adder")
+		STATES (ADD_IDLE, ADD_BUSY)
+		PARAMS ()
+		PORTS (
+			PORT (test_in, l_data, DESTINATION);
+			PORT (mem_data_in, l_string, DESTINATION);		
+			PORT (from_control, l_string, DESTINATION);		
+			PORT (to_control, l_string, SOURCE);
+			PORT (control_in, l_string, DESTINATION);
+			)
+		);
+
+	ENTITY subtractor (
+		EXTENDS (Biclocked)
+		DESCRIPTION ("Subtractor")
+		STATES (SUB_IDLE, SUB_BUSY)
+		PARAMS ()
+		PORTS (
+			PORT (acc_data_in, l_data, DESTINATION);
+			PORT (mem_data_in, l_string, DESTINATION);
+			PORT (data_out, l_data, SOURCE);
+			PORT (test_out, l_data, SOURCE);
+			)
+		);
+
+	ENTITY acc (
+		EXTENDS (Biclocked)
+		DESCRIPTION ("Accumulator")
+		STATES (ACC_IDLE, ACC_BUSY)
+		PARAMS (RINT (ACC_value,0);)
+		PORTS (
+			PORT(data_in, l_data, DESTINATION);
+			PORT(mem_data_out, l_data, SOURCE);
+			PORT(sub_data_out, l_data, SOURCE);
+			)
+		);
+
+	ENTITY test (
+		EXTENDS (Biclocked)
+		DESCRIPTION ("Test")
+		STATES (T_0, T_1)
+		PARAMS (
+				RINT (T, 0);
+		)
+		PORTS (
+			PORT (data_in, l_data, DESTINATION);
+			PORT (reset,  l_data, DESTINATION);
+			PORT (test_out, l_data, SOURCE);
+			)
+		);
+
+	ENTITY memory (
+		EXTENDS (Biclocked)
+		DESCRIPTION ("Memory")
+		STATES (M_IDLE)
+		PARAMS (
+			RINT (Mem_Size, 32);
+			RARRAY (mem_array, main_mem, Mem_Size);
+		)
+	  	PORTS (
+			PORT(request,l_string, DESTINATION);
+			PORT(data_in,l_string, DESTINATION);
+			PORT(prog_in,l_instr, DESTINATION);
+			PORT(instrn_out,l_string, SOURCE);
+			PORT(add_data_out,l_string, SOURCE);
+			PORT(sub_data_out,l_string, SOURCE);
+	  		)
+		    );
+
+	ENTITY crt_display (
+		DESCRIPTION ("Memory Display")
+		STATES (S0, S1, S2, S3, S4, S5, S6, S7, S8, S9, S10, S11, S12, S13, S14, S15)
+		PARAMS ()
+	  	PORTS ()
+		    );
+
+	ENTITY CI_display (
+		DESCRIPTION ("CI Display")
+		STATES (S0, S1)
+		PARAMS ()
+	  	PORTS ()
+		    );
+
+	ENTITY PI_display (
+		DESCRIPTION ("PI Display")
+		STATES (OFF, S0, S1)
+		PARAMS ()
+	  	PORTS ()
+		    );
+
+	ENTITY neon (
+		EXTENDS (Biclocked)
+		DESCRIPTION ("Halt Neon")
+		STATES (NEON_ON, NEON_OFF)
+		PARAMS ()
+	  	PORTS ()
+		    );
+	)
+
+	STRUCTURE(
+	
+	AENTITY time_bar TIME_BAR (DESCRIPTION ("Beat Display"));
+
+	AENTITY control CONTROL (DESCRIPTION ("C and PI"));
+
+	AENTITY staticisor STATICISOR (DESCRIPTION ("Staticisor"));
+
+	AENTITY adder ADDER (DESCRIPTION ("Adder"));
+
+	AENTITY subtractor SUBTRACTOR (DESCRIPTION ("Subtractor"));
+
+	AENTITY acc ACCUMULATOR ( DESCRIPTION ("Accumulator"));
+
+	AENTITY test TEST (DESCRIPTION ("Test"));
+
+	AENTITY memory MEMORY ( DESCRIPTION ("CU Memory"));
+
+	AENTITY input INPUT (DESCRIPTION ("Program and data input"));	
+
+	AENTITY Clock CLOCK (DESCRIPTION ("Clock"));
+	AENTITY Clockphase CPHASE (DESCRIPTION ("Clock display"));
+
+	AENTITY neon HALT_NEON (DESCRIPTION ("Halt Neon"));
+
+	AENTITY CI_display CI_0 ( DESCRIPTION ("CI display element 0"));
+	AENTITY CI_display CI_1 ( DESCRIPTION ("CI display element 1"));
+	AENTITY CI_display CI_2 ( DESCRIPTION ("CI display element 2"));
+	AENTITY CI_display CI_3 ( DESCRIPTION ("CI display element 3"));
+	AENTITY CI_display CI_4 ( DESCRIPTION ("CI display element 4"));
+
+	AENTITY PI_display PI_0 ( DESCRIPTION ("PI display element 0"));
+	AENTITY PI_display PI_1 ( DESCRIPTION ("PI display element 1"));
+	AENTITY PI_display PI_2 ( DESCRIPTION ("PI display element 2"));
+	AENTITY PI_display PI_3 ( DESCRIPTION ("PI display element 3"));
+	AENTITY PI_display PI_4 ( DESCRIPTION ("PI display element 4"));
+	AENTITY PI_display PI_13 ( DESCRIPTION ("PI display element 13"));
+	AENTITY PI_display PI_14 ( DESCRIPTION ("PI display element 14"));
+	AENTITY PI_display PI_15 ( DESCRIPTION ("PI display element 15"));
+
+	AENTITY crt_display CRT_000 ( DESCRIPTION ("CRT display element 00"));
+	AENTITY crt_display CRT_001 ( DESCRIPTION ("CRT display element 01"));
+	AENTITY crt_display CRT_002 ( DESCRIPTION ("CRT display element 02"));
+	AENTITY crt_display CRT_003 ( DESCRIPTION ("CRT display element 03"));
+	AENTITY crt_display CRT_004 ( DESCRIPTION ("CRT display element 04"));
+	AENTITY crt_display CRT_005 ( DESCRIPTION ("CRT display element 05"));
+	AENTITY crt_display CRT_006 ( DESCRIPTION ("CRT display element 06"));
+	AENTITY crt_display CRT_007 ( DESCRIPTION ("CRT display element 07"));
+
+	AENTITY crt_display CRT_010 ( DESCRIPTION ("CRT display element 10"));
+	AENTITY crt_display CRT_011 ( DESCRIPTION ("CRT display element 11"));
+	AENTITY crt_display CRT_012 ( DESCRIPTION ("CRT display element 12"));
+	AENTITY crt_display CRT_013 ( DESCRIPTION ("CRT display element 13"));
+	AENTITY crt_display CRT_014 ( DESCRIPTION ("CRT display element 14"));
+	AENTITY crt_display CRT_015 ( DESCRIPTION ("CRT display element 15"));
+	AENTITY crt_display CRT_016 ( DESCRIPTION ("CRT display element 16"));
+	AENTITY crt_display CRT_017 ( DESCRIPTION ("CRT display element 17"));
+
+	AENTITY crt_display CRT_020 ( DESCRIPTION ("CRT display element 20"));
+	AENTITY crt_display CRT_021 ( DESCRIPTION ("CRT display element 21"));
+	AENTITY crt_display CRT_022 ( DESCRIPTION ("CRT display element 22"));
+	AENTITY crt_display CRT_023 ( DESCRIPTION ("CRT display element 23"));
+	AENTITY crt_display CRT_024 ( DESCRIPTION ("CRT display element 24"));
+	AENTITY crt_display CRT_025 ( DESCRIPTION ("CRT display element 25"));
+	AENTITY crt_display CRT_026 ( DESCRIPTION ("CRT display element 26"));
+	AENTITY crt_display CRT_027 ( DESCRIPTION ("CRT display element 27"));
+
+	AENTITY crt_display CRT_030 ( DESCRIPTION ("CRT display element 30"));
+	AENTITY crt_display CRT_031 ( DESCRIPTION ("CRT display element 31"));
+	AENTITY crt_display CRT_032 ( DESCRIPTION ("CRT display element 32"));
+	AENTITY crt_display CRT_033 ( DESCRIPTION ("CRT display element 33"));
+	AENTITY crt_display CRT_034 ( DESCRIPTION ("CRT display element 34"));
+	AENTITY crt_display CRT_035 ( DESCRIPTION ("CRT display element 35"));
+	AENTITY crt_display CRT_036 ( DESCRIPTION ("CRT display element 36"));
+	AENTITY crt_display CRT_037 ( DESCRIPTION ("CRT display element 37"));
+
+	AENTITY crt_display CRT_040 ( DESCRIPTION ("CRT display element 40"));
+	AENTITY crt_display CRT_041 ( DESCRIPTION ("CRT display element 41"));
+	AENTITY crt_display CRT_042 ( DESCRIPTION ("CRT display element 42"));
+	AENTITY crt_display CRT_043 ( DESCRIPTION ("CRT display element 43"));
+	AENTITY crt_display CRT_044 ( DESCRIPTION ("CRT display element 44"));
+	AENTITY crt_display CRT_045 ( DESCRIPTION ("CRT display element 45"));
+	AENTITY crt_display CRT_046 ( DESCRIPTION ("CRT display element 46"));
+	AENTITY crt_display CRT_047 ( DESCRIPTION ("CRT display element 47"));
+
+	AENTITY crt_display CRT_050 ( DESCRIPTION ("CRT display element 50"));
+	AENTITY crt_display CRT_051 ( DESCRIPTION ("CRT display element 51"));
+	AENTITY crt_display CRT_052 ( DESCRIPTION ("CRT display element 52"));
+	AENTITY crt_display CRT_053 ( DESCRIPTION ("CRT display element 53"));
+	AENTITY crt_display CRT_054 ( DESCRIPTION ("CRT display element 54"));
+	AENTITY crt_display CRT_055 ( DESCRIPTION ("CRT display element 55"));
+	AENTITY crt_display CRT_056 ( DESCRIPTION ("CRT display element 56"));
+	AENTITY crt_display CRT_057 ( DESCRIPTION ("CRT display element 57"));
+
+	AENTITY crt_display CRT_060 ( DESCRIPTION ("CRT display element 60"));
+	AENTITY crt_display CRT_061 ( DESCRIPTION ("CRT display element 61"));
+	AENTITY crt_display CRT_062 ( DESCRIPTION ("CRT display element 62"));
+	AENTITY crt_display CRT_063 ( DESCRIPTION ("CRT display element 63"));
+	AENTITY crt_display CRT_064 ( DESCRIPTION ("CRT display element 64"));
+	AENTITY crt_display CRT_065 ( DESCRIPTION ("CRT display element 65"));
+	AENTITY crt_display CRT_066 ( DESCRIPTION ("CRT display element 66"));
+	AENTITY crt_display CRT_067 ( DESCRIPTION ("CRT display element 67"));
+
+	AENTITY crt_display CRT_070 ( DESCRIPTION ("CRT display element 70"));
+	AENTITY crt_display CRT_071 ( DESCRIPTION ("CRT display element 71"));
+	AENTITY crt_display CRT_072 ( DESCRIPTION ("CRT display element 72"));
+	AENTITY crt_display CRT_073 ( DESCRIPTION ("CRT display element 73"));
+	AENTITY crt_display CRT_074 ( DESCRIPTION ("CRT display element 74"));
+	AENTITY crt_display CRT_075 ( DESCRIPTION ("CRT display element 75"));
+	AENTITY crt_display CRT_076 ( DESCRIPTION ("CRT display element 76"));
+	AENTITY crt_display CRT_077 ( DESCRIPTION ("CRT display element 77"));
+
+	AENTITY crt_display CRT_080 ( DESCRIPTION ("CRT display element 80"));
+	AENTITY crt_display CRT_081 ( DESCRIPTION ("CRT display element 81"));
+	AENTITY crt_display CRT_082 ( DESCRIPTION ("CRT display element 82"));
+	AENTITY crt_display CRT_083 ( DESCRIPTION ("CRT display element 83"));
+	AENTITY crt_display CRT_084 ( DESCRIPTION ("CRT display element 84"));
+	AENTITY crt_display CRT_085 ( DESCRIPTION ("CRT display element 85"));
+	AENTITY crt_display CRT_086 ( DESCRIPTION ("CRT display element 86"));
+	AENTITY crt_display CRT_087 ( DESCRIPTION ("CRT display element 87"));
+
+	AENTITY crt_display CRT_090 ( DESCRIPTION ("CRT display element 90"));
+	AENTITY crt_display CRT_091 ( DESCRIPTION ("CRT display element 91"));
+	AENTITY crt_display CRT_092 ( DESCRIPTION ("CRT display element 92"));
+	AENTITY crt_display CRT_093 ( DESCRIPTION ("CRT display element 93"));
+	AENTITY crt_display CRT_094 ( DESCRIPTION ("CRT display element 94"));
+	AENTITY crt_display CRT_095 ( DESCRIPTION ("CRT display element 95"));
+	AENTITY crt_display CRT_096 ( DESCRIPTION ("CRT display element 96"));
+	AENTITY crt_display CRT_097 ( DESCRIPTION ("CRT display element 97"));
+
+	AENTITY crt_display CRT_100 ( DESCRIPTION ("CRT display element 100"));
+	AENTITY crt_display CRT_101 ( DESCRIPTION ("CRT display element 101"));
+	AENTITY crt_display CRT_102 ( DESCRIPTION ("CRT display element 102"));
+	AENTITY crt_display CRT_103 ( DESCRIPTION ("CRT display element 103"));
+	AENTITY crt_display CRT_104 ( DESCRIPTION ("CRT display element 104"));
+	AENTITY crt_display CRT_105 ( DESCRIPTION ("CRT display element 105"));
+	AENTITY crt_display CRT_106 ( DESCRIPTION ("CRT display element 106"));
+	AENTITY crt_display CRT_107 ( DESCRIPTION ("CRT display element 107"));
+
+	AENTITY crt_display CRT_110 ( DESCRIPTION ("CRT display element 110"));
+	AENTITY crt_display CRT_111 ( DESCRIPTION ("CRT display element 111"));
+	AENTITY crt_display CRT_112 ( DESCRIPTION ("CRT display element 112"));
+	AENTITY crt_display CRT_113 ( DESCRIPTION ("CRT display element 113"));
+	AENTITY crt_display CRT_114 ( DESCRIPTION ("CRT display element 114"));
+	AENTITY crt_display CRT_115 ( DESCRIPTION ("CRT display element 115"));
+	AENTITY crt_display CRT_116 ( DESCRIPTION ("CRT display element 116"));
+	AENTITY crt_display CRT_117 ( DESCRIPTION ("CRT display element 117"));
+
+	AENTITY crt_display CRT_120 ( DESCRIPTION ("CRT display element 120"));
+	AENTITY crt_display CRT_121 ( DESCRIPTION ("CRT display element 122"));
+	AENTITY crt_display CRT_122 ( DESCRIPTION ("CRT display element 122"));
+	AENTITY crt_display CRT_123 ( DESCRIPTION ("CRT display element 123"));
+	AENTITY crt_display CRT_124 ( DESCRIPTION ("CRT display element 124"));
+	AENTITY crt_display CRT_125 ( DESCRIPTION ("CRT display element 125"));
+	AENTITY crt_display CRT_126 ( DESCRIPTION ("CRT display element 126"));
+	AENTITY crt_display CRT_127 ( DESCRIPTION ("CRT display element 127"))
+
+	AENTITY crt_display CRT_130 ( DESCRIPTION ("CRT display element 130"));
+	AENTITY crt_display CRT_131 ( DESCRIPTION ("CRT display element 132"));
+	AENTITY crt_display CRT_132 ( DESCRIPTION ("CRT display element 132"));
+	AENTITY crt_display CRT_133 ( DESCRIPTION ("CRT display element 133"));
+	AENTITY crt_display CRT_134 ( DESCRIPTION ("CRT display element 134"));
+	AENTITY crt_display CRT_135 ( DESCRIPTION ("CRT display element 135"));
+	AENTITY crt_display CRT_136 ( DESCRIPTION ("CRT display element 136"));
+	AENTITY crt_display CRT_137 ( DESCRIPTION ("CRT display element 137"));
+
+	AENTITY crt_display CRT_140 ( DESCRIPTION ("CRT display element 140"));
+	AENTITY crt_display CRT_141 ( DESCRIPTION ("CRT display element 141"));
+	AENTITY crt_display CRT_142 ( DESCRIPTION ("CRT display element 142"));
+	AENTITY crt_display CRT_143 ( DESCRIPTION ("CRT display element 143"));
+	AENTITY crt_display CRT_144 ( DESCRIPTION ("CRT display element 144"));
+	AENTITY crt_display CRT_145 ( DESCRIPTION ("CRT display element 145"));
+	AENTITY crt_display CRT_146 ( DESCRIPTION ("CRT display element 146"));
+	AENTITY crt_display CRT_147 ( DESCRIPTION ("CRT display element 147"));
+
+	AENTITY crt_display CRT_150 ( DESCRIPTION ("CRT display element 150"));
+	AENTITY crt_display CRT_151 ( DESCRIPTION ("CRT display element 151"));
+	AENTITY crt_display CRT_152 ( DESCRIPTION ("CRT display element 152"));
+	AENTITY crt_display CRT_153 ( DESCRIPTION ("CRT display element 153"));
+	AENTITY crt_display CRT_154 ( DESCRIPTION ("CRT display element 154"));
+	AENTITY crt_display CRT_155 ( DESCRIPTION ("CRT display element 155"));
+	AENTITY crt_display CRT_156 ( DESCRIPTION ("CRT display element 156"));
+	AENTITY crt_display CRT_157 ( DESCRIPTION ("CRT display element 157"));
+
+	AENTITY crt_display CRT_160 ( DESCRIPTION ("CRT display element 160"));
+	AENTITY crt_display CRT_161 ( DESCRIPTION ("CRT display element 161"));
+	AENTITY crt_display CRT_162 ( DESCRIPTION ("CRT display element 162"));
+	AENTITY crt_display CRT_163 ( DESCRIPTION ("CRT display element 163"));
+	AENTITY crt_display CRT_164 ( DESCRIPTION ("CRT display element 164"));
+	AENTITY crt_display CRT_165 ( DESCRIPTION ("CRT display element 165"));
+	AENTITY crt_display CRT_166 ( DESCRIPTION ("CRT display element 166"));
+	AENTITY crt_display CRT_167 ( DESCRIPTION ("CRT display element 167"));
+
+	AENTITY crt_display CRT_170 ( DESCRIPTION ("CRT display element 170"));
+	AENTITY crt_display CRT_171 ( DESCRIPTION ("CRT display element 171"));
+	AENTITY crt_display CRT_172 ( DESCRIPTION ("CRT display element 172"));
+	AENTITY crt_display CRT_173 ( DESCRIPTION ("CRT display element 173"));
+	AENTITY crt_display CRT_174 ( DESCRIPTION ("CRT display element 174"));
+	AENTITY crt_display CRT_175 ( DESCRIPTION ("CRT display element 175"));
+	AENTITY crt_display CRT_176 ( DESCRIPTION ("CRT display element 176"));
+	AENTITY crt_display CRT_177 ( DESCRIPTION ("CRT display element 177"));
+
+	AENTITY crt_display CRT_180 ( DESCRIPTION ("CRT display element 180"));
+	AENTITY crt_display CRT_181 ( DESCRIPTION ("CRT display element 181"));
+	AENTITY crt_display CRT_182 ( DESCRIPTION ("CRT display element 182"));
+	AENTITY crt_display CRT_183 ( DESCRIPTION ("CRT display element 183"));
+	AENTITY crt_display CRT_184 ( DESCRIPTION ("CRT display element 184"));
+	AENTITY crt_display CRT_185 ( DESCRIPTION ("CRT display element 185"));
+	AENTITY crt_display CRT_186 ( DESCRIPTION ("CRT display element 186"));
+	AENTITY crt_display CRT_187 ( DESCRIPTION ("CRT display element 187"));
+
+	AENTITY crt_display CRT_190 ( DESCRIPTION ("CRT display element 190"));
+	AENTITY crt_display CRT_191 ( DESCRIPTION ("CRT display element 191"));
+	AENTITY crt_display CRT_192 ( DESCRIPTION ("CRT display element 192"));
+	AENTITY crt_display CRT_193 ( DESCRIPTION ("CRT display element 193"));
+	AENTITY crt_display CRT_194 ( DESCRIPTION ("CRT display element 194"));
+	AENTITY crt_display CRT_195 ( DESCRIPTION ("CRT display element 195"));
+	AENTITY crt_display CRT_196 ( DESCRIPTION ("CRT display element 196"));
+	AENTITY crt_display CRT_197 ( DESCRIPTION ("CRT display element 197"));
+
+	AENTITY crt_display CRT_200 ( DESCRIPTION ("CRT display element 200"));
+	AENTITY crt_display CRT_201 ( DESCRIPTION ("CRT display element 201"));
+	AENTITY crt_display CRT_202 ( DESCRIPTION ("CRT display element 202"));
+	AENTITY crt_display CRT_203 ( DESCRIPTION ("CRT display element 203"));
+	AENTITY crt_display CRT_204 ( DESCRIPTION ("CRT display element 204"));
+	AENTITY crt_display CRT_205 ( DESCRIPTION ("CRT display element 205"));
+	AENTITY crt_display CRT_206 ( DESCRIPTION ("CRT display element 206"));
+	AENTITY crt_display CRT_207 ( DESCRIPTION ("CRT display element 207"));
+
+	AENTITY crt_display CRT_210 ( DESCRIPTION ("CRT display element 210"));
+	AENTITY crt_display CRT_211 ( DESCRIPTION ("CRT display element 211"));
+	AENTITY crt_display CRT_212 ( DESCRIPTION ("CRT display element 212"));
+	AENTITY crt_display CRT_213 ( DESCRIPTION ("CRT display element 213"));
+	AENTITY crt_display CRT_214 ( DESCRIPTION ("CRT display element 214"));
+	AENTITY crt_display CRT_215 ( DESCRIPTION ("CRT display element 215"));
+	AENTITY crt_display CRT_216 ( DESCRIPTION ("CRT display element 216"));
+	AENTITY crt_display CRT_217 ( DESCRIPTION ("CRT display element 217"));
+
+	AENTITY crt_display CRT_220 ( DESCRIPTION ("CRT display element 220"));
+	AENTITY crt_display CRT_221 ( DESCRIPTION ("CRT display element 221"));
+	AENTITY crt_display CRT_222 ( DESCRIPTION ("CRT display element 222"));
+	AENTITY crt_display CRT_223 ( DESCRIPTION ("CRT display element 223"));
+	AENTITY crt_display CRT_224 ( DESCRIPTION ("CRT display element 224"));
+	AENTITY crt_display CRT_225 ( DESCRIPTION ("CRT display element 225"));
+	AENTITY crt_display CRT_226 ( DESCRIPTION ("CRT display element 226"));
+	AENTITY crt_display CRT_227 ( DESCRIPTION ("CRT display element 227"));
+
+	AENTITY crt_display CRT_230 ( DESCRIPTION ("CRT display element 230"));
+	AENTITY crt_display CRT_231 ( DESCRIPTION ("CRT display element 231"));
+	AENTITY crt_display CRT_232 ( DESCRIPTION ("CRT display element 232"));
+	AENTITY crt_display CRT_233 ( DESCRIPTION ("CRT display element 233"));
+	AENTITY crt_display CRT_234 ( DESCRIPTION ("CRT display element 234"));
+	AENTITY crt_display CRT_235 ( DESCRIPTION ("CRT display element 235"));
+	AENTITY crt_display CRT_236 ( DESCRIPTION ("CRT display element 236"));
+	AENTITY crt_display CRT_237 ( DESCRIPTION ("CRT display element 237"));
+
+	AENTITY crt_display CRT_240 ( DESCRIPTION ("CRT display element 240"));
+	AENTITY crt_display CRT_241 ( DESCRIPTION ("CRT display element 241"));
+	AENTITY crt_display CRT_242 ( DESCRIPTION ("CRT display element 242"));
+	AENTITY crt_display CRT_243 ( DESCRIPTION ("CRT display element 243"));
+	AENTITY crt_display CRT_244 ( DESCRIPTION ("CRT display element 244"));
+	AENTITY crt_display CRT_245 ( DESCRIPTION ("CRT display element 245"));
+	AENTITY crt_display CRT_246 ( DESCRIPTION ("CRT display element 246"));
+	AENTITY crt_display CRT_247 ( DESCRIPTION ("CRT display element 247"));
+
+	AENTITY crt_display CRT_250 ( DESCRIPTION ("CRT display element 250"));
+	AENTITY crt_display CRT_251 ( DESCRIPTION ("CRT display element 251"));
+	AENTITY crt_display CRT_252 ( DESCRIPTION ("CRT display element 252"));
+	AENTITY crt_display CRT_253 ( DESCRIPTION ("CRT display element 253"));
+	AENTITY crt_display CRT_254 ( DESCRIPTION ("CRT display element 254"));
+	AENTITY crt_display CRT_255 ( DESCRIPTION ("CRT display element 255"));
+	AENTITY crt_display CRT_256 ( DESCRIPTION ("CRT display element 256"));
+	AENTITY crt_display CRT_257 ( DESCRIPTION ("CRT display element 257"));
+
+	AENTITY crt_display CRT_260 ( DESCRIPTION ("CRT display element 260"));
+	AENTITY crt_display CRT_261 ( DESCRIPTION ("CRT display element 261"));
+	AENTITY crt_display CRT_262 ( DESCRIPTION ("CRT display element 262"));
+	AENTITY crt_display CRT_263 ( DESCRIPTION ("CRT display element 263"));
+	AENTITY crt_display CRT_264 ( DESCRIPTION ("CRT display element 264"));
+	AENTITY crt_display CRT_265 ( DESCRIPTION ("CRT display element 265"));
+	AENTITY crt_display CRT_266 ( DESCRIPTION ("CRT display element 266"));
+	AENTITY crt_display CRT_267 ( DESCRIPTION ("CRT display element 267"));
+
+	AENTITY crt_display CRT_270 ( DESCRIPTION ("CRT display element 270"));
+	AENTITY crt_display CRT_271 ( DESCRIPTION ("CRT display element 271"));
+	AENTITY crt_display CRT_272 ( DESCRIPTION ("CRT display element 272"));
+	AENTITY crt_display CRT_273 ( DESCRIPTION ("CRT display element 273"));
+	AENTITY crt_display CRT_274 ( DESCRIPTION ("CRT display element 274"));
+	AENTITY crt_display CRT_275 ( DESCRIPTION ("CRT display element 275"));
+	AENTITY crt_display CRT_276 ( DESCRIPTION ("CRT display element 276"));
+	AENTITY crt_display CRT_277 ( DESCRIPTION ("CRT display element 277"));
+
+	AENTITY crt_display CRT_280 ( DESCRIPTION ("CRT display element 280"));
+	AENTITY crt_display CRT_281 ( DESCRIPTION ("CRT display element 281"));
+	AENTITY crt_display CRT_282 ( DESCRIPTION ("CRT display element 282"));
+	AENTITY crt_display CRT_283 ( DESCRIPTION ("CRT display element 283"));
+	AENTITY crt_display CRT_284 ( DESCRIPTION ("CRT display element 284"));
+	AENTITY crt_display CRT_285 ( DESCRIPTION ("CRT display element 285"));
+	AENTITY crt_display CRT_286 ( DESCRIPTION ("CRT display element 286"));
+	AENTITY crt_display CRT_287 ( DESCRIPTION ("CRT display element 287"));
+
+	AENTITY crt_display CRT_290 ( DESCRIPTION ("CRT display element 290"));
+	AENTITY crt_display CRT_291 ( DESCRIPTION ("CRT display element 291"));
+	AENTITY crt_display CRT_292 ( DESCRIPTION ("CRT display element 292"));
+	AENTITY crt_display CRT_293 ( DESCRIPTION ("CRT display element 293"));
+	AENTITY crt_display CRT_294 ( DESCRIPTION ("CRT display element 294"));
+	AENTITY crt_display CRT_295 ( DESCRIPTION ("CRT display element 295"));
+	AENTITY crt_display CRT_296 ( DESCRIPTION ("CRT display element 296"));
+	AENTITY crt_display CRT_297 ( DESCRIPTION ("CRT display element 297"));
+
+	AENTITY crt_display CRT_300 ( DESCRIPTION ("CRT display element 300"));
+	AENTITY crt_display CRT_301 ( DESCRIPTION ("CRT display element 301"));
+	AENTITY crt_display CRT_302 ( DESCRIPTION ("CRT display element 302"));
+	AENTITY crt_display CRT_303 ( DESCRIPTION ("CRT display element 303"));
+	AENTITY crt_display CRT_304 ( DESCRIPTION ("CRT display element 304"));
+	AENTITY crt_display CRT_305 ( DESCRIPTION ("CRT display element 305"));
+	AENTITY crt_display CRT_306 ( DESCRIPTION ("CRT display element 306"));
+	AENTITY crt_display CRT_307 ( DESCRIPTION ("CRT display element 307"));
+
+	AENTITY crt_display CRT_310 ( DESCRIPTION ("CRT display element 310"));
+	AENTITY crt_display CRT_311 ( DESCRIPTION ("CRT display element 311"));
+	AENTITY crt_display CRT_312 ( DESCRIPTION ("CRT display element 312"));
+	AENTITY crt_display CRT_313 ( DESCRIPTION ("CRT display element 313"));
+	AENTITY crt_display CRT_314 ( DESCRIPTION ("CRT display element 314"));
+	AENTITY crt_display CRT_315 ( DESCRIPTION ("CRT display element 315"));
+	AENTITY crt_display CRT_316 ( DESCRIPTION ("CRT display element 316"));
+	AENTITY crt_display CRT_317 ( DESCRIPTION ("CRT display element 317"));
+
+	CLINK(input.INPUT[to_memory]->memory.MEMORY[prog_in],1);
+	CLINK(control.CONTROL[to_stat]->staticisor.STATICISOR[from_control],1);
+	CLINK(control.CONTROL[to_adder]->adder.ADDER[from_control],1);
+	CLINK(staticisor.STATICISOR[to_memory]->memory.MEMORY[request],1);
+	CLINK(staticisor.STATICISOR[to_test]->test.TEST[reset],0);
+	CLINK(adder.ADDER[to_control]->control.CONTROL[from_adder],1);
+	CLINK(memory.MEMORY[instrn_out]->control.CONTROL[instrn_in],1);
+	CLINK(memory.MEMORY[add_data_out]->adder.ADDER[mem_data_in],1);
+	CLINK(memory.MEMORY[sub_data_out]->subtractor.SUBTRACTOR[mem_data_in],1);
+	CLINK(subtractor.SUBTRACTOR[data_out]->acc.ACCUMULATOR[data_in],1);
+	CLINK(subtractor.SUBTRACTOR[test_out]->test.TEST[data_in],1);
+	CLINK(test.TEST[test_out]->adder.ADDER[test_in],1);
+	CLINK(acc.ACCUMULATOR[mem_data_out]->memory.MEMORY[data_in],1);
+	CLINK(acc.ACCUMULATOR[sub_data_out]->subtractor.SUBTRACTOR[acc_data_in],1);
+	)
+)
+
+
