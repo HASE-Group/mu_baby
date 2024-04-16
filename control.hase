@@ -33,7 +33,7 @@ void updateCI_display();
   staticisor* myStaticisor;
   memory* myMemory;
 
- bool bit_value;
+ int bit_value;
  char char_bit, fn_string[3];
  int clock_cycle;
  int value, pi_value, fn, address, i;

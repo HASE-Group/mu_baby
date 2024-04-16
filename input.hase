@@ -12,7 +12,8 @@ $class_decls
 
  bool stop_error, address_error, stop_found;
  int fn, data;
- int i, j, rw;								// memory address of 32-bit word
+ int i, j; 								// memory address of 32-bit word
+ char rw;
  int fn_error_line, ad_error_line;
  int last_inst_line;
  int integer_instrn[32];
