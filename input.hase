@@ -11,8 +11,9 @@ $class_decls
  memory * myMemory;
 
  bool stop_error, address_error, stop_found;
+ char rw;
  int origin, fn, data;
- int i, j, rw;								// memory address of 32-bit word
+ int i, j;
  int fn_error_line, ad_error_line, Program_error;
  int last_inst_line;
  int integer_instrn[32];
