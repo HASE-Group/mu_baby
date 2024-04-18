@@ -326,7 +326,7 @@ $class_defs
 void memory::updateCRT(char chRW, int nMem_address)
 
 // Update Display 
-// if chRW = R, read by writing all 1's, if chRW = W, write value in line mem_addrss
+// if chRW = R, read by writing all 1's, if chRW = W, write value in line nmem_address
 // For each memory word, form reverse order version of memory word
 // Create a value for  each 4-bit group in reverse word and send to Display
 
