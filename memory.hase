@@ -1,7 +1,7 @@
 // Project:	SSEM
 // Entity	Memory
 // File:	memory.hase
-// Date:	May 2021
+// Date:	May 2021, updated April 2024
 
 // The Memory Unit contains an array of integers, the 32-line RARRAY main_mem.
 // Requests are processed in ClockPhase 0 and returned in the subsequent ClockPhase 1.
@@ -323,20 +323,20 @@ void updateCRT(char rw, int mem_address);
 
 $class_defs
 
-void memory::updateCRT(char rw, int mem_address)
+void memory::updateCRT(char chRW, int nMem_address)
 
 // Update Display 
-// if rw = R, read by writing all 1's, if rw = W, write value in line mem_addrss
+// if chRW = R, read by writing all 1's, if chRW = W, write value in line nmem_address
 // For each memory word, form reverse order version of memory word
 // Create a value for  each 4-bit group in reverse word and send to Display
 
 {
- if (rw == 'R')
+ if (chRW == 'R')
   {reverse_word = -1;}
 
- if (rw == 'W')
+ if (chRW == 'W')
   {
-   word = main_mem[mem_address];
+   word = main_mem[nMem_address];
    reverse_word = word & 1;
    for (i = 1; i < 32; i++)
     {
@@ -346,7 +346,7 @@ void memory::updateCRT(char rw, int mem_address)
      }
   }
 
- if (mem_address == 0)
+ if (nMem_address == 0)
  {
   value = (reverse_word >> 28) & 15;
   sim_schedule(display_000, 0.0, DATA, SIM_PUT(int, value));
@@ -366,7 +366,7 @@ void memory::updateCRT(char rw, int mem_address)
   sim_schedule(display_007, 0.0, DATA, SIM_PUT(int, value));
  }
 
- if (mem_address == 1)
+ if (nMem_address == 1)
   {
   value = (reverse_word >> 28) & 15;
   sim_schedule(display_010, 0.0, DATA, SIM_PUT(int, value));
@@ -386,7 +386,7 @@ void memory::updateCRT(char rw, int mem_address)
   sim_schedule(display_017, 0.0, DATA, SIM_PUT(int, value));
   }
 
- if (mem_address == 2)
+ if (nMem_address == 2)
   {
   value = (reverse_word >> 28) & 15;
   sim_schedule(display_020, 0.0, DATA, SIM_PUT(int, value));
@@ -406,7 +406,7 @@ void memory::updateCRT(char rw, int mem_address)
   sim_schedule(display_027, 0.0, DATA, SIM_PUT(int, value));
   }
 
- if (mem_address == 3)
+ if (nMem_address == 3)
   {
   value = (reverse_word >> 28) & 15;
   sim_schedule(display_030, 0.0, DATA, SIM_PUT(int, value));
@@ -426,7 +426,7 @@ void memory::updateCRT(char rw, int mem_address)
   sim_schedule(display_037, 0.0, DATA, SIM_PUT(int, value));
   }
 
- if (mem_address == 4)
+ if (nMem_address == 4)
   {
   value = (reverse_word >> 28) & 15;
   sim_schedule(display_040, 0.0, DATA, SIM_PUT(int, value));
@@ -446,7 +446,7 @@ void memory::updateCRT(char rw, int mem_address)
   sim_schedule(display_047, 0.0, DATA, SIM_PUT(int, value));
   }
 
- if (mem_address == 5)
+ if (nMem_address == 5)
   {
   value = (reverse_word >> 28) & 15;
   sim_schedule(display_050, 0.0, DATA, SIM_PUT(int, value));
@@ -466,7 +466,7 @@ void memory::updateCRT(char rw, int mem_address)
   sim_schedule(display_057, 0.0, DATA, SIM_PUT(int, value));
   }
 
- if (mem_address == 6)
+ if (nMem_address == 6)
   {  
   value = (reverse_word >> 28) & 15;
   sim_schedule(display_060, 0.0, DATA, SIM_PUT(int, value));
@@ -486,7 +486,7 @@ void memory::updateCRT(char rw, int mem_address)
   sim_schedule(display_067, 0.0, DATA, SIM_PUT(int, value));
   }
 
- if (mem_address == 7)
+ if (nMem_address == 7)
   { 
   value = (reverse_word >> 28) & 15;
   sim_schedule(display_070, 0.0, DATA, SIM_PUT(int, value));
@@ -506,7 +506,7 @@ void memory::updateCRT(char rw, int mem_address)
   sim_schedule(display_077, 0.0, DATA, SIM_PUT(int, value));
   }
 
- if (mem_address == 8)
+ if (nMem_address == 8)
   { 
   value = (reverse_word >> 28) & 15;
   sim_schedule(display_080, 0.0, DATA, SIM_PUT(int, value));
@@ -526,7 +526,7 @@ void memory::updateCRT(char rw, int mem_address)
   sim_schedule(display_087, 0.0, DATA, SIM_PUT(int, value));
   }
 
- if (mem_address == 9)
+ if (nMem_address == 9)
   {
   value = (reverse_word >> 28) & 15;
   sim_schedule(display_090, 0.0, DATA, SIM_PUT(int, value));
@@ -546,7 +546,7 @@ void memory::updateCRT(char rw, int mem_address)
   sim_schedule(display_097, 0.0, DATA, SIM_PUT(int, value));
   }
 
- if (mem_address == 10)
+ if (nMem_address == 10)
   {
   value = (reverse_word >> 28) & 15;
   sim_schedule(display_100, 0.0, DATA, SIM_PUT(int, value));
@@ -566,7 +566,7 @@ void memory::updateCRT(char rw, int mem_address)
   sim_schedule(display_107, 0.0, DATA, SIM_PUT(int, value));
   }
 
- if (mem_address == 11)
+ if (nMem_address == 11)
   {
   value = (reverse_word >> 28) & 15;
   sim_schedule(display_110, 0.0, DATA, SIM_PUT(int, value));
@@ -586,7 +586,7 @@ void memory::updateCRT(char rw, int mem_address)
   sim_schedule(display_117, 0.0, DATA, SIM_PUT(int, value));
   }
 
- if (mem_address == 12)
+ if (nMem_address == 12)
   {
   value = (reverse_word >> 28) & 15;
   sim_schedule(display_120, 0.0, DATA, SIM_PUT(int, value));
@@ -606,7 +606,7 @@ void memory::updateCRT(char rw, int mem_address)
   sim_schedule(display_127, 0.0, DATA, SIM_PUT(int, value));
   }
 
- if (mem_address == 13)
+ if (nMem_address == 13)
   {
   value = (reverse_word >> 28) & 15;
   sim_schedule(display_130, 0.0, DATA, SIM_PUT(int, value));
@@ -626,7 +626,7 @@ void memory::updateCRT(char rw, int mem_address)
   sim_schedule(display_137, 0.0, DATA, SIM_PUT(int, value));
   }
 
- if (mem_address == 14)
+ if (nMem_address == 14)
   {
   value = (reverse_word >> 28) & 15;
   sim_schedule(display_140, 0.0, DATA, SIM_PUT(int, value));
@@ -646,7 +646,7 @@ void memory::updateCRT(char rw, int mem_address)
   sim_schedule(display_147, 0.0, DATA, SIM_PUT(int, value));
   }
 
- if (mem_address == 15)
+ if (nMem_address == 15)
   {
   value = (reverse_word >> 28) & 15;
   sim_schedule(display_150, 0.0, DATA, SIM_PUT(int, value));
@@ -666,7 +666,7 @@ void memory::updateCRT(char rw, int mem_address)
   sim_schedule(display_157, 0.0, DATA, SIM_PUT(int, value));
   }
 
- if (mem_address == 16)
+ if (nMem_address == 16)
   {
   value = (reverse_word >> 28) & 15;
   sim_schedule(display_160, 0.0, DATA, SIM_PUT(int, value));
@@ -686,7 +686,7 @@ void memory::updateCRT(char rw, int mem_address)
   sim_schedule(display_167, 0.0, DATA, SIM_PUT(int, value));
   }
 
- if (mem_address == 17)
+ if (nMem_address == 17)
   {
   value = (reverse_word >> 28) & 15;
   sim_schedule(display_170, 0.0, DATA, SIM_PUT(int, value));
@@ -706,7 +706,7 @@ void memory::updateCRT(char rw, int mem_address)
   sim_schedule(display_177, 0.0, DATA, SIM_PUT(int, value));
   }
 
- if (mem_address == 18)
+ if (nMem_address == 18)
   {
   value = (reverse_word >> 28) & 15;
   sim_schedule(display_180, 0.0, DATA, SIM_PUT(int, value));
@@ -726,7 +726,7 @@ void memory::updateCRT(char rw, int mem_address)
   sim_schedule(display_187, 0.0, DATA, SIM_PUT(int, value));
   }
 
- if (mem_address == 19)
+ if (nMem_address == 19)
   {
   value = (reverse_word >> 28) & 15;
   sim_schedule(display_190, 0.0, DATA, SIM_PUT(int, value));
@@ -746,7 +746,7 @@ void memory::updateCRT(char rw, int mem_address)
   sim_schedule(display_197, 0.0, DATA, SIM_PUT(int, value));
   }
 
- if (mem_address == 20)
+ if (nMem_address == 20)
   {
   value = (reverse_word >> 28) & 15;
   sim_schedule(display_200, 0.0, DATA, SIM_PUT(int, value));
@@ -766,7 +766,7 @@ void memory::updateCRT(char rw, int mem_address)
   sim_schedule(display_207, 0.0, DATA, SIM_PUT(int, value));
   }
 
- if (mem_address == 21)
+ if (nMem_address == 21)
   {
   value = (reverse_word >> 28) & 15;
   sim_schedule(display_210, 0.0, DATA, SIM_PUT(int, value));
@@ -786,7 +786,7 @@ void memory::updateCRT(char rw, int mem_address)
   sim_schedule(display_217, 0.0, DATA, SIM_PUT(int, value));
   }
 
- if (mem_address == 22)
+ if (nMem_address == 22)
   {
   value = (reverse_word >> 28) & 15;
   sim_schedule(display_220, 0.0, DATA, SIM_PUT(int, value));
@@ -806,7 +806,7 @@ void memory::updateCRT(char rw, int mem_address)
   sim_schedule(display_227, 0.0, DATA, SIM_PUT(int, value));
   }
 
- if (mem_address == 23)
+ if (nMem_address == 23)
   {
   value = (reverse_word >> 28) & 15;
   sim_schedule(display_230, 0.0, DATA, SIM_PUT(int, value));
@@ -826,7 +826,7 @@ void memory::updateCRT(char rw, int mem_address)
   sim_schedule(display_237, 0.0, DATA, SIM_PUT(int, value));
   }
 
- if (mem_address == 24)
+ if (nMem_address == 24)
   {
   value = (reverse_word >> 28) & 15;
   sim_schedule(display_240, 0.0, DATA, SIM_PUT(int, value));
@@ -846,7 +846,7 @@ void memory::updateCRT(char rw, int mem_address)
   sim_schedule(display_247, 0.0, DATA, SIM_PUT(int, value));
   }
 
- if (mem_address == 25)
+ if (nMem_address == 25)
   {
   value = (reverse_word >> 28) & 15;
   sim_schedule(display_250, 0.0, DATA, SIM_PUT(int, value));
@@ -866,7 +866,7 @@ void memory::updateCRT(char rw, int mem_address)
   sim_schedule(display_257, 0.0, DATA, SIM_PUT(int, value));
   }
 
- if (mem_address == 26)
+ if (nMem_address == 26)
   {
   value = (reverse_word >> 28) & 15;
   sim_schedule(display_260, 0.0, DATA, SIM_PUT(int, value));
@@ -886,7 +886,7 @@ void memory::updateCRT(char rw, int mem_address)
   sim_schedule(display_267, 0.0, DATA, SIM_PUT(int, value));
   }
 
- if (mem_address == 27)
+ if (nMem_address == 27)
   {
   value = (reverse_word >> 28) & 15;
   sim_schedule(display_270, 0.0, DATA, SIM_PUT(int, value));
@@ -906,7 +906,7 @@ void memory::updateCRT(char rw, int mem_address)
   sim_schedule(display_277, 0.0, DATA, SIM_PUT(int, value));
   }
 
- if (mem_address == 28)
+ if (nMem_address == 28)
   {
   value = (reverse_word >> 28) & 15;
   sim_schedule(display_280, 0.0, DATA, SIM_PUT(int, value));
@@ -926,7 +926,7 @@ void memory::updateCRT(char rw, int mem_address)
   sim_schedule(display_287, 0.0, DATA, SIM_PUT(int, value));
   }
 
- if (mem_address == 29)
+ if (nMem_address == 29)
   {
   value = (reverse_word >> 28) & 15;
   sim_schedule(display_290, 0.0, DATA, SIM_PUT(int, value));
@@ -946,7 +946,7 @@ void memory::updateCRT(char rw, int mem_address)
   sim_schedule(display_297, 0.0, DATA, SIM_PUT(int, value));
   }
 
- if (mem_address == 30)
+ if (nMem_address == 30)
   {
   value = (reverse_word >> 28) & 15;
   sim_schedule(display_300, 0.0, DATA, SIM_PUT(int, value));
@@ -966,7 +966,7 @@ void memory::updateCRT(char rw, int mem_address)
   sim_schedule(display_307, 0.0, DATA, SIM_PUT(int, value));
   }
 
- if (mem_address == 31)
+ if (nMem_address == 31)
   {
   value = (reverse_word >> 28) & 15;
   sim_schedule(display_310, 0.0, DATA, SIM_PUT(int, value));
@@ -1378,4 +1378,3 @@ $phase1
  	// end of ClockPhase 0
 
 	// end of ClockPhase 1
-
